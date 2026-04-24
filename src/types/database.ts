@@ -1,11 +1,12 @@
-// 실제 배포 후: npx supabase gen types typescript --project-id YOUR_ID > src/types/database.ts
+// 실제 배포 시에는 `npx supabase gen types typescript ...` 결과로 대체할 수 있습니다.
+// 현재 프로젝트에서는 화면 구현에 필요한 최소 타입만 유지합니다.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Database = any
 
 export type CategoryType = 'food' | 'trans' | 'shop' | 'house' | 'health' | 'fun' | 'etc'
 export type AssetType = 'asset' | 'liability'
 export type RecurringCycle = 'daily' | 'weekly' | 'monthly' | 'yearly'
-export type FamilyRole = 'owner' | 'editor' | 'viewer'
+export type FamilyRole = 'owner' | 'admin' | 'member' | 'editor' | 'viewer'
 export type ThemeType = 'light' | 'dark' | 'grey' | 'sepia'
 export type AccentType = 'teal' | 'blue' | 'purple' | 'green' | 'slate' | 'rose' | 'amber' | 'ocean' | ''
 export type FontType = 'pretendard' | 'noto-sans' | 'gothic' | 'ibm' | 'noto-serif'
@@ -31,8 +32,7 @@ export interface BudgetTransaction {
   account: string
   memo: string
   created_at: string
-  // joined
-  category?: BudgetCategory
+  category?: Pick<BudgetCategory, 'id' | 'name' | 'icon' | 'color'>
 }
 
 export interface BudgetAsset {
@@ -76,6 +76,7 @@ export interface FamilyGroup {
   id: string
   owner_id: string
   name: string
+  invite_code?: string | null
   created_at: string
 }
 
@@ -84,7 +85,7 @@ export interface FamilyMember {
   group_id: string
   user_id: string
   role: FamilyRole
+  display_name?: string | null
   joined_at: string
-  // joined
   profile?: { name: string; email: string; avatar_url: string | null }
 }

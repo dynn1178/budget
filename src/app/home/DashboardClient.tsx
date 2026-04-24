@@ -1,4 +1,5 @@
 'use client'
+
 import { useMemo } from 'react'
 import { useWindowSize } from '@/hooks/useWindowSize'
 import { fmtW, pct } from '@/lib/utils'
@@ -6,7 +7,7 @@ import { DonutChart } from '@/components/ui/DonutChart'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { StatCard } from '@/components/ui/StatCard'
 import { SectionTitle } from '@/components/ui/SectionTitle'
-import type { BudgetTransaction, BudgetCategory, BudgetSetting, BudgetAsset } from '@/types/database'
+import type { BudgetAsset, BudgetCategory, BudgetSetting, BudgetTransaction } from '@/types/database'
 
 interface Props {
   transactions: BudgetTransaction[]
@@ -15,204 +16,287 @@ interface Props {
   assets: BudgetAsset[]
 }
 
-const MONTHLY_HISTORY = [
-  { m:'11월', a:1820000 }, { m:'12월', a:2100000 }, { m:'1월', a:1950000 },
-  { m:'2월', a:2280000 }, { m:'3월', a:2150000 },
-]
-
 export function DashboardClient({ transactions, categories, settings, assets }: Props) {
-  const { isMobile, isTablet } = useWindowSize()
+  const { isMobile } = useWindowSize()
 
   const monthlyBudget = settings?.monthly_budget ?? 2500000
-  const totalSpent = useMemo(() => transactions.reduce((s, t) => s + t.amount, 0), [transactions])
-  const budgetPct = pct(totalSpent, monthlyBudget)
+  const totalSpent = useMemo(() => transactions.reduce((sum, tx) => sum + tx.amount, 0), [transactions])
+  const totalAssets = useMemo(
+    () => assets.filter((asset) => asset.asset_type === 'asset').reduce((sum, asset) => sum + asset.amount, 0),
+    [assets],
+  )
+  const totalLiabilities = useMemo(
+    () =>
+      assets
+        .filter((asset) => asset.asset_type === 'liability')
+        .reduce((sum, asset) => sum + Math.abs(asset.amount), 0),
+    [assets],
+  )
+  const netWorth = totalAssets - totalLiabilities
+  const budgetRate = pct(totalSpent, monthlyBudget)
 
-  const totalAssets = assets.filter(a => a.asset_type === 'asset').reduce((s, a) => s + a.amount, 0)
-  const totalLiab   = assets.filter(a => a.asset_type === 'liability').reduce((s, a) => s + Math.abs(a.amount), 0)
-  const netWorth    = totalAssets - totalLiab
-
-  // 카테고리별 지출 집계
-  const catSpent = useMemo(() => {
-    const map: Record<string, number> = {}
-    transactions.forEach(t => {
-      if (t.category_id) map[t.category_id] = (map[t.category_id] || 0) + t.amount
-    })
-    return map
+  const categorySpend = useMemo(() => {
+    const result: Record<string, number> = {}
+    for (const tx of transactions) {
+      if (!tx.category_id) continue
+      result[tx.category_id] = (result[tx.category_id] || 0) + tx.amount
+    }
+    return result
   }, [transactions])
 
-  const sortedCats = [...categories].sort((a, b) => (catSpent[b.id] || 0) - (catSpent[a.id] || 0))
-  const catSegments = sortedCats.map(c => ({ value: catSpent[c.id] || 0, color: c.color })).filter(s => s.value > 0)
+  const sortedCategories = useMemo(
+    () => [...categories].sort((a, b) => (categorySpend[b.id] || 0) - (categorySpend[a.id] || 0)),
+    [categories, categorySpend],
+  )
 
-  const currentMonth = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
-  const allMonthly = [...MONTHLY_HISTORY, { m: `${new Date().getMonth()+1}월`, a: totalSpent }]
-  const monthlyMax = Math.max(...allMonthly.map(d => d.a))
+  const chartSegments = sortedCategories
+    .map((category) => ({ value: categorySpend[category.id] || 0, color: category.color }))
+    .filter((segment) => segment.value > 0)
 
-  const card = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: isMobile ? '16px' : '20px 24px', boxShadow: 'var(--shadow-sm)' } as const
+  const recentTransactions = transactions.slice(0, 8)
+  const daysPassed = Math.max(new Date().getDate(), 1)
+  const averageDaily = Math.round(totalSpent / daysPassed)
+  const remainingBudget = monthlyBudget - totalSpent
+
+  const monthlyTrend = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const tx of transactions) {
+      const key = tx.date.slice(0, 7)
+      map[key] = (map[key] || 0) + tx.amount
+    }
+
+    return Object.entries(map)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-6)
+      .map(([month, amount]) => ({
+        label: `${Number(month.slice(5))}월`,
+        amount,
+      }))
+  }, [transactions])
+
+  const trendMax = Math.max(...monthlyTrend.map((item) => item.amount), 1)
+
+  const cardStyle = {
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    padding: isMobile ? '16px' : '20px 24px',
+    boxShadow: 'var(--shadow-sm)',
+  } as const
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-      {/* ── Hero ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--accent) 0%, #1A5C54 100%)',
-        borderRadius: 'var(--radius)', padding: isMobile ? '20px 18px' : '28px 32px',
-        color: '#fff', position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{ position: 'absolute', top: -60, right: -60, width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
-        <div style={{ fontSize: 12, opacity: .75, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{currentMonth} · 이달의 지출</div>
-        <div style={{ fontWeight: 900, fontSize: isMobile ? 34 : 44, letterSpacing: '-1.5px', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{fmtW(totalSpent)}</div>
-        <div style={{ fontSize: 13, opacity: .8, marginTop: 8 }}>예산 {fmtW(monthlyBudget)} 중 {budgetPct}% 사용 · 잔여 {fmtW(monthlyBudget - totalSpent)}</div>
-        <div style={{ marginTop: 12, height: 6, background: 'rgba(255,255,255,0.2)', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${Math.min(budgetPct, 100)}%`, background: 'rgba(255,255,255,0.85)', borderRadius: 99, transition: 'width .5s ease' }} />
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? 10 : 20, marginTop: 18 }}>
-          {[
-            { label: '이번 달 거래', value: `${transactions.length}건`, note: `일평균 ${(transactions.length / new Date().getDate()).toFixed(1)}건` },
-            { label: '총 자산', value: fmtW(totalAssets), note: '현금·투자 포함' },
-            { label: '순자산', value: fmtW(netWorth), note: '자산 - 부채' },
-          ].map(item => (
-            <div key={item.label} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.12)', borderRadius: 10 }}>
-              <div style={{ fontSize: 10, opacity: .7, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{item.label}</div>
-              <div style={{ fontWeight: 800, fontSize: 16, marginTop: 4 }}>{item.value}</div>
-              <div style={{ fontSize: 11, opacity: .7, marginTop: 2 }}>{item.note}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Quick Stats ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12 }}>
-        <StatCard icon="📈" label="총 자산" value={fmtW(totalAssets)} sub="현금·투자·부동산 등" />
-        <StatCard icon="📉" label="총 부채" value={fmtW(totalLiab)} sub="카드·대출" color="var(--red)" />
-        <StatCard icon="📅" label="이번 달 거래" value={`${transactions.length}건`} sub={`예산 ${budgetPct}% 사용`} />
-        <StatCard icon="💰" label="순자산" value={fmtW(netWorth)} color="var(--accent)" />
-      </div>
-
-      {/* ── 카테고리 현황 ── */}
-      <div style={card}>
-        <SectionTitle sub="카테고리별 예산 사용 현황">카테고리별 지출 현황</SectionTitle>
-        <div style={{ display: 'flex', gap: isMobile ? 16 : 28, alignItems: 'flex-start', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <DonutChart
-              segments={catSegments.length > 0 ? catSegments : [{ value: 1, color: 'var(--bg3)' }]}
-              size={isMobile ? 130 : 160} thickness={28}
-              label={`${budgetPct}%`} sublabel="예산 사용"
+      <section
+        style={{
+          background: 'linear-gradient(135deg, var(--accent) 0%, #194a44 100%)',
+          borderRadius: 'var(--radius)',
+          color: '#fff',
+          padding: isMobile ? '22px 18px' : '30px 32px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            right: -40,
+            top: -30,
+            width: 180,
+            height: 180,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.08)',
+          }}
+        />
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: 12, opacity: 0.78, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            이번 달 총지출
+          </div>
+          <div style={{ marginTop: 8, fontSize: isMobile ? 34 : 46, fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            {fmtW(totalSpent)}
+          </div>
+          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.85 }}>
+            월 예산 {fmtW(monthlyBudget)} 중 {budgetRate}% 사용, {remainingBudget >= 0 ? `남은 금액 ${fmtW(remainingBudget)}` : `초과 금액 ${fmtW(Math.abs(remainingBudget))}`}
+          </div>
+          <div style={{ marginTop: 14, height: 8, borderRadius: 999, overflow: 'hidden', background: 'rgba(255,255,255,0.18)' }}>
+            <div
+              style={{
+                width: `${Math.min(budgetRate, 100)}%`,
+                height: '100%',
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.92)',
+              }}
             />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', maxWidth: 170 }}>
-              {sortedCats.map(c => (
-                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: c.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>{c.name}</span>
-                </div>
-              ))}
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))',
+              gap: 12,
+              marginTop: 18,
+            }}
+          >
+            <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>평균 일지출</div>
+              <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{fmtW(averageDaily)}</div>
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>거래 건수</div>
+              <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{transactions.length}건</div>
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.12)' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>순자산</div>
+              <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{fmtW(netWorth)}</div>
             </div>
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {sortedCats.map(c => {
-              const spent = catSpent[c.id] || 0
-              const over = spent > c.budget_amount
-              return (
-                <div key={c.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span style={{ fontSize: 14 }}>{c.icon}</span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{c.name}</span>
-                      {over && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--red)', background: 'var(--red-bg)', padding: '1px 6px', borderRadius: 99 }}>초과</span>}
+        </div>
+      </section>
+
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))',
+          gap: 12,
+        }}
+      >
+        <StatCard label="총자산" value={fmtW(totalAssets)} sub="예금, 현금, 투자" color="var(--green)" />
+        <StatCard label="총부채" value={fmtW(totalLiabilities)} sub="카드값, 대출" color="var(--red)" />
+        <StatCard label="예산 사용률" value={`${budgetRate}%`} sub={`남은 예산 ${fmtW(Math.max(remainingBudget, 0))}`} />
+        <StatCard label="이번 달 기록" value={`${transactions.length}건`} sub="카드값과 현금 지출 포함" color="var(--accent)" />
+      </section>
+
+      <section style={cardStyle}>
+        <SectionTitle sub="어디에 가장 많이 쓰고 있는지 한눈에 볼 수 있어요">카테고리 예산 현황</SectionTitle>
+        {sortedCategories.length === 0 ? (
+          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text3)', fontSize: 13 }}>
+            카테고리가 아직 없습니다. 먼저 분류를 만들고 지출을 기록해 보세요.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 24, flexWrap: isMobile ? 'wrap' : 'nowrap', alignItems: 'flex-start' }}>
+            <div style={{ minWidth: isMobile ? '100%' : 180, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <DonutChart
+                segments={chartSegments.length > 0 ? chartSegments : [{ value: 1, color: 'var(--bg3)' }]}
+                size={isMobile ? 150 : 180}
+                thickness={30}
+                label={`${budgetRate}%`}
+                sublabel="예산 사용"
+              />
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {sortedCategories.map((category) => {
+                const spent = categorySpend[category.id] || 0
+                const overBudget = category.budget_amount > 0 && spent > category.budget_amount
+                return (
+                  <div key={category.id}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6, gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 16 }}>{category.icon}</span>
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>{category.name}</span>
+                        {overBudget && (
+                          <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--red)', background: 'var(--red-bg)', padding: '2px 7px', borderRadius: 999 }}>
+                            초과
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: 12 }}>
+                        <span style={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{fmtW(spent)}</span>
+                        <span style={{ color: 'var(--text3)' }}>
+                          {category.budget_amount > 0 ? ` / ${fmtW(category.budget_amount)}` : ' / 예산 미설정'}
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
-                      <span style={{ fontWeight: 700, color: over ? 'var(--red)' : 'var(--text)' }}>{fmtW(spent)}</span>
-                      <span style={{ color: 'var(--text3)', fontSize: 11 }}> / {fmtW(c.budget_amount)}</span>
-                      <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: 'var(--text3)' }}>{pct(spent, c.budget_amount)}%</span>
-                    </div>
+                    <ProgressBar value={spent} max={category.budget_amount || Math.max(spent, 1)} color={category.color} />
                   </div>
-                  <ProgressBar value={spent} max={c.budget_amount} color={c.color} height={6} />
-                </div>
-              )
-            })}
-            {categories.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--text3)', padding: '20px 0', textAlign: 'center' }}>카테고리가 없습니다</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── 월별 지출 ── */}
-      <div style={card}>
-        <SectionTitle sub="최근 6개월 지출 추이">월별 지출</SectionTitle>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 140 }}>
-          {allMonthly.map((d, i) => {
-            const isLast = i === allMonthly.length - 1
-            const barH = Math.max(4, (d.a / monthlyMax) * 110)
-            return (
-              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
-                {isLast && <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{Math.round(d.a / 10000)}만</div>}
-                <div style={{ width: '100%', borderRadius: '4px 4px 0 0', background: isLast ? 'var(--accent)' : 'var(--bg3)', height: barH, transition: 'height .3s ease', minHeight: 4 }} />
-                <div style={{ fontSize: 9, color: 'var(--text3)', textAlign: 'center' }}>{d.m}</div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* ── 최근 지출 내역 ── */}
-      <div style={card}>
-        <SectionTitle action={{ label: '전체 보기 →', fn: () => { location.href = '/transactions' } }}>최근 지출 내역</SectionTitle>
-        {transactions.slice(0, 8).map((t, i, arr) => {
-          const cat = t.category as BudgetCategory | undefined
-          return (
-            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 9, background: (cat?.color || '#9A9088') + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0 }}>
-                {cat?.icon || '📦'}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.merchant || '(미입력)'}</div>
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>{t.account}</div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--red)', fontVariantNumeric: 'tabular-nums' }}>-{fmtW(t.amount)}</div>
-                <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{t.date.slice(5).replace('-', '.')}</div>
-              </div>
+                )
+              })}
             </div>
-          )
-        })}
-        {transactions.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text3)' }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>✏️</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>이번 달 지출 내역이 없습니다</div>
-            <a href="/entry" style={{ display: 'inline-block', marginTop: 12, padding: '8px 16px', background: 'var(--accent)', color: '#fff', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>첫 지출 기록하기</a>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* ── 자산 현황 ── */}
-      {assets.length > 0 && (
-        <div style={card}>
-          <SectionTitle sub="자산·부채 현황">자산 현황</SectionTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 16 }}>
-            {[
-              { label: '총 자산', value: fmtW(totalAssets), color: 'var(--green)' },
-              { label: '총 부채', value: fmtW(totalLiab), color: 'var(--red)' },
-              { label: '순자산', value: fmtW(netWorth), color: 'var(--accent)' },
-            ].map(item => (
-              <div key={item.label} style={{ padding: '12px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</div>
-                <div style={{ fontWeight: 800, fontSize: 15, color: item.color, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{item.value}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {assets.slice(0, 6).map(a => (
-              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 18 }}>{a.icon}</span>
-                <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{a.name}</div>
-                <div style={{ fontWeight: 700, fontSize: 13, fontVariantNumeric: 'tabular-nums', color: a.asset_type === 'asset' ? 'var(--text)' : 'var(--red)' }}>
-                  {a.asset_type === 'liability' ? '-' : ''}{fmtW(Math.abs(a.amount))}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr .9fr', gap: 20 }}>
+        <section style={cardStyle}>
+          <SectionTitle action={{ label: '전체 보기', fn: () => (window.location.href = '/transactions') }}>최근 지출 내역</SectionTitle>
+          {recentTransactions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text3)', fontSize: 13 }}>
+              아직 기록된 지출이 없습니다. 첫 지출을 추가해 보세요.
+            </div>
+          ) : (
+            recentTransactions.map((tx, index) => {
+              const category = tx.category
+              return (
+                <div
+                  key={tx.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 0',
+                    borderBottom: index < recentTransactions.length - 1 ? '1px solid var(--border)' : 'none',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 12,
+                      background: `${category?.color || '#9A9088'}22`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 17,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {category?.icon || '•'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{tx.merchant || '미입력 사용처'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 3 }}>
+                      {(category?.name || '기타')} · {tx.account || '결제수단 미입력'}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--red)', fontVariantNumeric: 'tabular-nums' }}>-{fmtW(tx.amount)}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{tx.date}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              )
+            })
+          )}
+        </section>
+
+        <section style={cardStyle}>
+          <SectionTitle sub="최근 월별 지출 흐름입니다">월별 추이</SectionTitle>
+          {monthlyTrend.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '28px 0', color: 'var(--text3)', fontSize: 13 }}>월별 통계를 만들 데이터가 아직 없습니다.</div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, minHeight: 180 }}>
+              {monthlyTrend.map((item, index) => {
+                const height = Math.max(16, (item.amount / trendMax) * 132)
+                const isCurrent = index === monthlyTrend.length - 1
+                return (
+                  <div key={item.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: isCurrent ? 'var(--accent)' : 'var(--text3)', fontVariantNumeric: 'tabular-nums' }}>
+                      {Math.round(item.amount / 10000)}만
+                    </div>
+                    <div
+                      style={{
+                        width: '100%',
+                        maxWidth: 42,
+                        height,
+                        borderRadius: '10px 10px 0 0',
+                        background: isCurrent ? 'var(--accent)' : 'var(--bg3)',
+                      }}
+                    />
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>{item.label}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   )
 }

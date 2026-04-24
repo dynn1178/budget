@@ -1,31 +1,55 @@
 'use client'
 
-interface Segment { value: number; color: string }
+interface Segment {
+  value: number
+  color: string
+}
 
-export function DonutChart({ segments, size = 160, thickness = 28, label, sublabel }: {
-  segments: Segment[]; size?: number; thickness?: number; label?: string; sublabel?: string
+export function DonutChart({
+  segments,
+  size = 160,
+  thickness = 28,
+  label,
+  sublabel,
+}: {
+  segments: Segment[]
+  size?: number
+  thickness?: number
+  label?: string
+  sublabel?: string
 }) {
-  const total = segments.reduce((s, d) => s + d.value, 0)
+  const safeSegments = segments.filter((segment) => segment.value > 0)
+  const total = safeSegments.reduce((sum, segment) => sum + segment.value, 0)
+  const segmentsToRender = total > 0 ? safeSegments : [{ value: 1, color: 'var(--bg3)' }]
+  const renderTotal = segmentsToRender.reduce((sum, segment) => sum + segment.value, 0)
+
   const r = (size - thickness) / 2
-  const cx = size / 2, cy = size / 2
-  const C = 2 * Math.PI * r
-  let cumFrac = 0
+  const cx = size / 2
+  const cy = size / 2
+  const circumference = 2 * Math.PI * r
+  let accumulatedFraction = 0
 
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bg2)" strokeWidth={thickness} />
-        {segments.map((seg, i) => {
-          const frac = seg.value / total
-          const dashLen = frac * C
-          const rotate = cumFrac * 360 - 90
-          cumFrac += frac
+        {segmentsToRender.map((segment, index) => {
+          const fraction = segment.value / renderTotal
+          const dashLength = fraction * circumference
+          const rotation = accumulatedFraction * 360 - 90
+          accumulatedFraction += fraction
+
           return (
-            <circle key={i} cx={cx} cy={cy} r={r} fill="none"
-              stroke={seg.color} strokeWidth={thickness}
-              strokeDasharray={`${dashLen} ${C}`}
-              strokeDashoffset={0}
-              transform={`rotate(${rotate} ${cx} ${cy})`}
+            <circle
+              key={index}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth={thickness}
+              strokeDasharray={`${dashLength} ${circumference}`}
+              transform={`rotate(${rotation} ${cx} ${cy})`}
             />
           )
         })}

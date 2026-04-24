@@ -5,11 +5,14 @@ import { RecurringClient } from './RecurringClient'
 
 export default async function RecurringPage() {
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user) redirect('/auth/login')
 
   const [{ data: recurring }, { data: categories }] = await Promise.all([
-    supabase.from('budget_recurring').select('*').eq('user_id', user.id).order('sort_order'),
+    supabase.from('budget_recurring').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('budget_categories').select('*').eq('user_id', user.id).order('sort_order'),
   ])
 

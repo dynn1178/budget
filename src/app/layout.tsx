@@ -2,43 +2,39 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'WhereDidItGo — 가계부',
-  description: '내 돈 어디 갔지? 스마트 가계부',
-  manifest: '/manifest.json',
+  title: 'WhereDidItGo | 가계부',
+  description: '월 예산, 지출 내역, 자산 현황을 한 곳에서 관리하는 개인 가계부',
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>₩</text></svg>",
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'WhereDidItGo',
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='82'>원</text></svg>",
   },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: '#2E7D70',
 }
 
-// FOUC 방지: 테마/폰트/액센트 즉시 적용
 const THEME_SCRIPT = `(function(){
   try{
-    var w=window.innerWidth,dk=w<600?'mobile':w<1100?'tablet':'desktop';
-    var p=JSON.parse(localStorage.getItem('wdig_'+dk+'_settings')||'{}');
-    var r=document.documentElement;
-    if(p.theme) r.setAttribute('data-theme',p.theme);
-    if(p.accent) r.setAttribute('data-accent',p.accent);
+    var w=window.innerWidth, dk=w<600?'mobile':w<1100?'tablet':'desktop';
+    var root=document.documentElement;
+    var theme=localStorage.getItem('wdig_'+dk+'_theme');
+    var accent=localStorage.getItem('wdig_'+dk+'_accent');
+    var font=localStorage.getItem('wdig_'+dk+'_font');
+    if(theme) root.setAttribute('data-theme', JSON.parse(theme));
+    if(accent) root.setAttribute('data-accent', JSON.parse(accent));
     var fonts={
-      'pretendard':"'Pretendard Variable','Pretendard',-apple-system,sans-serif",
-      'noto-sans':"'Noto Sans KR',sans-serif",
-      'gothic':"'Gothic A1',sans-serif",
-      'ibm':"'IBM Plex Sans KR',sans-serif",
-      'noto-serif':"'Noto Serif KR',serif"
+      'pretendard': "'Pretendard Variable','Pretendard',-apple-system,sans-serif",
+      'noto-sans': "'Noto Sans KR',sans-serif",
+      'gothic': "'Gothic A1',sans-serif",
+      'ibm': "'IBM Plex Sans KR',sans-serif",
+      'noto-serif': "'Noto Serif KR',serif"
     };
-    if(p.font) r.style.setProperty('--font-sans',fonts[p.font]||fonts['pretendard']);
+    if(font){
+      var parsed=JSON.parse(font);
+      root.style.setProperty('--font-sans', fonts[parsed] || fonts['pretendard']);
+    }
   }catch(e){}
 })();`
 

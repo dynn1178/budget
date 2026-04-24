@@ -1,193 +1,321 @@
 'use client'
-import { useState } from 'react'
+
+import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { fmtW } from '@/lib/utils'
 import { SectionTitle } from '@/components/ui/SectionTitle'
 import { Toggle } from '@/components/ui/Toggle'
-import type { BudgetRecurring, BudgetCategory } from '@/types/database'
+import type { BudgetCategory, BudgetRecurring, RecurringCycle } from '@/types/database'
 
-const CYCLES = [
+const CYCLES: { value: RecurringCycle; label: string }[] = [
   { value: 'daily', label: '매일' },
   { value: 'weekly', label: '매주' },
   { value: 'monthly', label: '매월' },
   { value: 'yearly', label: '매년' },
 ]
 
+const ICONS = ['구독', '보험', '통신', '주거', '교육', '교통', '건강', '문화']
+
 interface FormState {
-  name: string; icon: string; amount: string; cycle: string
-  day_of_month: string; category_id: string; account: string; memo: string
+  name: string
+  icon: string
+  amount: string
+  cycle: RecurringCycle
+  day_of_month: string
+  category_name: string
+  account: string
+  memo: string
 }
 
-const ICONS = ['📱','🌐','🎵','🎬','📺','🏋️','☁️','🛡️','📰','🎮','🔧','💊','🏠','🚗','📚']
-
-export function RecurringClient({ recurring: initialRecurring, categories, userId }: {
-  recurring: BudgetRecurring[]; categories: BudgetCategory[]; userId: string
+export function RecurringClient({
+  recurring: initialRecurring,
+  categories,
+  userId,
+}: {
+  recurring: BudgetRecurring[]
+  categories: BudgetCategory[]
+  userId: string
 }) {
   const sb = createClient()
   const router = useRouter()
   const [recurring, setRecurring] = useState(initialRecurring)
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState<BudgetRecurring | null>(null)
-  const [form, setForm] = useState<FormState>({ name: '', icon: '📱', amount: '', cycle: 'monthly', day_of_month: '1', category_id: '', account: '', memo: '' })
+  const [form, setForm] = useState<FormState>({
+    name: '',
+    icon: ICONS[0],
+    amount: '',
+    cycle: 'monthly',
+    day_of_month: '1',
+    category_name: categories[0]?.name || '',
+    account: '',
+    memo: '',
+  })
   const [saving, setSaving] = useState(false)
-  const setF = (k: keyof FormState, v: string) => setForm(f => ({ ...f, [k]: v }))
 
-  const activeItems = recurring.filter(r => r.is_active)
-  const inactiveItems = recurring.filter(r => !r.is_active)
-  const monthlyTotal = activeItems.filter(r => r.cycle === 'monthly').reduce((s, r) => s + r.amount, 0)
-    + activeItems.filter(r => r.cycle === 'yearly').reduce((s, r) => s + r.amount / 12, 0)
-    + activeItems.filter(r => r.cycle === 'weekly').reduce((s, r) => s + r.amount * 4.33, 0)
-    + activeItems.filter(r => r.cycle === 'daily').reduce((s, r) => s + r.amount * 30, 0)
+  const setField = (key: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const activeItems = recurring.filter((item) => item.active)
+  const inactiveItems = recurring.filter((item) => !item.active)
+
+  const monthlyEstimate = useMemo(() => {
+    return activeItems.reduce((sum, item) => {
+      if (item.cycle === 'daily') return sum + item.amount * 30
+      if (item.cycle === 'weekly') return sum + item.amount * 4.33
+      if (item.cycle === 'yearly') return sum + item.amount / 12
+      return sum + item.amount
+    }, 0)
+  }, [activeItems])
 
   const openAdd = () => {
-    setForm({ name: '', icon: '📱', amount: '', cycle: 'monthly', day_of_month: '1', category_id: categories[0]?.id || '', account: '', memo: '' })
-    setEditItem(null); setShowModal(true)
+    setEditItem(null)
+    setForm({
+      name: '',
+      icon: ICONS[0],
+      amount: '',
+      cycle: 'monthly',
+      day_of_month: '1',
+      category_name: categories[0]?.name || '',
+      account: '',
+      memo: '',
+    })
+    setShowModal(true)
   }
-  const openEdit = (r: BudgetRecurring) => {
-    setForm({ name: r.name, icon: r.icon, amount: String(r.amount), cycle: r.cycle, day_of_month: String(r.day_of_month || 1), category_id: r.category_id || '', account: r.account || '', memo: r.memo || '' })
-    setEditItem(r); setShowModal(true)
+
+  const openEdit = (item: BudgetRecurring) => {
+    setEditItem(item)
+    setForm({
+      name: item.name,
+      icon: item.icon,
+      amount: String(item.amount),
+      cycle: item.cycle,
+      day_of_month: String(item.day_of_month || 1),
+      category_name: item.category_name || '',
+      account: item.account || '',
+      memo: item.memo || '',
+    })
+    setShowModal(true)
   }
 
   const handleSave = async () => {
-    if (!form.name || !form.amount) return
+    if (!form.name.trim() || !form.amount) return
+
     setSaving(true)
-    const payload = { name: form.name, icon: form.icon, amount: parseInt(form.amount), cycle: form.cycle, day_of_month: parseInt(form.day_of_month) || 1, category_id: form.category_id || null, account: form.account, memo: form.memo }
+    const payload = {
+      name: form.name.trim(),
+      icon: form.icon,
+      amount: Number(form.amount),
+      cycle: form.cycle,
+      day_of_month: Number(form.day_of_month) || 1,
+      category_name: form.category_name,
+      account: form.account.trim(),
+      memo: form.memo.trim(),
+    }
+
     if (editItem) {
       await sb.from('budget_recurring').update(payload).eq('id', editItem.id)
     } else {
-      await sb.from('budget_recurring').insert({ ...payload, user_id: userId, is_active: true, sort_order: recurring.length })
+      await sb.from('budget_recurring').insert({
+        ...payload,
+        user_id: userId,
+        active: true,
+      })
     }
-    setSaving(false); setShowModal(false); router.refresh()
+
+    setSaving(false)
+    setShowModal(false)
+    router.refresh()
   }
 
   const handleDelete = async (id: string) => {
     await sb.from('budget_recurring').delete().eq('id', id)
-    setRecurring(list => list.filter(r => r.id !== id))
+    setRecurring((prev) => prev.filter((item) => item.id !== id))
     setShowModal(false)
   }
 
-  const toggleActive = async (r: BudgetRecurring) => {
-    await sb.from('budget_recurring').update({ is_active: !r.is_active }).eq('id', r.id)
-    setRecurring(list => list.map(x => x.id === r.id ? { ...x, is_active: !x.is_active } : x))
+  const toggleActive = async (item: BudgetRecurring) => {
+    await sb.from('budget_recurring').update({ active: !item.active }).eq('id', item.id)
+    setRecurring((prev) => prev.map((current) => (current.id === item.id ? { ...current, active: !current.active } : current)))
   }
 
-  const cycleLabel = (c: string) => CYCLES.find(x => x.value === c)?.label || c
+  const cardStyle = {
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    padding: '20px 24px',
+    boxShadow: 'var(--shadow-sm)',
+  } as const
 
-  const card = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px 24px', boxShadow: 'var(--shadow-sm)' } as const
-  const s = {
-    label: { display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 6 },
-    input: { width: '100%', padding: '10px 13px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border2)', fontSize: 14, fontFamily: 'var(--font-sans)', color: 'var(--text)', background: 'var(--surface)', outline: 'none', boxSizing: 'border-box' as const },
-    btn: (primary: boolean) => ({ padding: '10px 20px', borderRadius: 'var(--radius-sm)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 700, background: primary ? 'var(--accent)' : 'var(--bg2)', color: primary ? '#fff' : 'var(--text2)' }) as React.CSSProperties,
-  }
+  const fieldStyle = {
+    width: '100%',
+    padding: '10px 13px',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border2)',
+    background: 'var(--surface)',
+    color: 'var(--text)',
+    fontSize: 14,
+  } as const
 
-  const RecurringRow = ({ r }: { r: BudgetRecurring }) => {
-    const cat = categories.find(c => c.id === r.category_id)
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--border)', opacity: r.is_active ? 1 : 0.5 }}>
-        <span style={{ fontSize: 22 }}>{r.icon}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{r.name}</div>
-          <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>
-            {cycleLabel(r.cycle)} {r.cycle === 'monthly' || r.cycle === 'yearly' ? `${r.day_of_month}일` : ''}
-            {cat && <span style={{ marginLeft: 6 }}>{cat.icon} {cat.name}</span>}
-          </div>
-        </div>
-        <div style={{ textAlign: 'right', marginRight: 8 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{fmtW(r.amount)}</div>
-        </div>
-        <Toggle checked={r.is_active} onChange={() => toggleActive(r)} />
-        <button onClick={() => openEdit(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text3)', padding: '4px 6px', borderRadius: 6 }}>✏️</button>
+  const buttonStyle = (primary: boolean) =>
+    ({
+      padding: '10px 18px',
+      borderRadius: 'var(--radius-sm)',
+      border: 'none',
+      background: primary ? 'var(--accent)' : 'var(--bg2)',
+      color: primary ? '#fff' : 'var(--text2)',
+      fontWeight: 800,
+      fontSize: 13,
+      cursor: 'pointer',
+    }) as const
+
+  const Row = ({ item }: { item: BudgetRecurring }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--border)', opacity: item.active ? 1 : 0.56 }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-bg)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 900 }}>
+        {item.icon}
       </div>
-    )
-  }
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{item.name}</div>
+        <div style={{ marginTop: 3, fontSize: 12, color: 'var(--text3)' }}>
+          {CYCLES.find((cycle) => cycle.value === item.cycle)?.label || item.cycle}
+          {(item.cycle === 'monthly' || item.cycle === 'yearly') && ` · ${item.day_of_month}일`}
+          {item.category_name && ` · ${item.category_name}`}
+        </div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontSize: 14, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fmtW(item.amount)}</div>
+        <div style={{ marginTop: 3, fontSize: 11, color: 'var(--text3)' }}>{item.account || '계정 미입력'}</div>
+      </div>
+      <Toggle checked={item.active} onChange={() => toggleActive(item)} />
+      <button type="button" onClick={() => openEdit(item)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontWeight: 700 }}>
+        수정
+      </button>
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Summary */}
-      <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text)' }}>정기 지출</div>
-          <button onClick={openAdd} style={{ ...s.btn(true), fontSize: 12, padding: '7px 14px' }}>＋ 항목 추가</button>
+      <section style={cardStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 12 }}>
+          <div style={{ fontSize: 18, fontWeight: 900 }}>정기 지출 요약</div>
+          <button type="button" onClick={openAdd} style={buttonStyle(true)}>
+            새 항목 추가
+          </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          {[
-            { label: '활성 항목', value: `${activeItems.length}개`, icon: '✅' },
-            { label: '월 예상 금액', value: fmtW(Math.round(monthlyTotal)), icon: '📅' },
-            { label: '연 예상 금액', value: fmtW(Math.round(monthlyTotal * 12)), icon: '📆' },
-          ].map(item => (
-            <div key={item.label} style={{ padding: '14px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{item.icon}</div>
-              <div style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>{item.label}</div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{item.value}</div>
-            </div>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+          <div style={{ padding: '14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)' }}>활성 항목</div>
+            <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900 }}>{activeItems.length}개</div>
+          </div>
+          <div style={{ padding: '14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)' }}>월 예상 고정비</div>
+            <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fmtW(Math.round(monthlyEstimate))}</div>
+          </div>
+          <div style={{ padding: '14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)' }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)' }}>연간 예상 고정비</div>
+            <div style={{ marginTop: 4, fontSize: 22, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fmtW(Math.round(monthlyEstimate * 12))}</div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Active list */}
-      <div style={card}>
+      <section style={cardStyle}>
         <SectionTitle>활성 정기 지출</SectionTitle>
         {activeItems.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text3)' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>정기 지출을 추가해보세요</div>
-          </div>
-        ) : activeItems.map(r => <RecurringRow key={r.id} r={r} />)}
-      </div>
+          <div style={{ padding: '26px 0', textAlign: 'center', color: 'var(--text3)', fontSize: 13 }}>고정비 항목이 아직 없습니다.</div>
+        ) : (
+          activeItems.map((item) => <Row key={item.id} item={item} />)
+        )}
+      </section>
 
-      {/* Inactive list */}
       {inactiveItems.length > 0 && (
-        <div style={card}>
+        <section style={cardStyle}>
           <SectionTitle>비활성 항목</SectionTitle>
-          {inactiveItems.map(r => <RecurringRow key={r.id} r={r} />)}
-        </div>
+          {inactiveItems.map((item) => (
+            <Row key={item.id} item={item} />
+          ))}
+        </section>
       )}
 
-      {/* Modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-          onClick={e => e.target === e.currentTarget && setShowModal(false)}>
-          <div style={{ background: 'var(--surface)', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, maxHeight: '90vh', overflow: 'auto', padding: '24px', boxShadow: 'var(--shadow-lg)' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.42)', zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false)
+          }}
+        >
+          <div style={{ width: '100%', maxWidth: 520, maxHeight: '90vh', overflow: 'auto', background: 'var(--surface)', borderRadius: '20px 20px 0 0', padding: '24px', boxShadow: 'var(--shadow-lg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)' }}>{editItem ? '정기 지출 수정' : '정기 지출 추가'}</div>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--text3)' }}>✕</button>
+              <div style={{ fontSize: 18, fontWeight: 900 }}>{editItem ? '정기 지출 수정' : '정기 지출 추가'}</div>
+              <button type="button" onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--text3)' }}>
+                ×
+              </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={s.label}>아이콘</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>아이콘</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {ICONS.map(icon => (
-                    <button key={icon} onClick={() => setF('icon', icon)} style={{ width: 36, height: 36, fontSize: 18, borderRadius: 8, border: form.icon === icon ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.icon === icon ? 'var(--accent-bg)' : 'var(--bg)', cursor: 'pointer' }}>{icon}</button>
+                  {ICONS.map((icon) => (
+                    <button key={icon} type="button" onClick={() => setField('icon', icon)} style={{ padding: '10px 12px', borderRadius: 10, border: form.icon === icon ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.icon === icon ? 'var(--accent-bg)' : 'var(--bg)', cursor: 'pointer', fontWeight: 800 }}>
+                      {icon}
+                    </button>
                   ))}
                 </div>
               </div>
-              <div><label style={s.label}>이름</label><input style={s.input} placeholder="예: 넷플릭스" value={form.name} onChange={e => setF('name', e.target.value)} /></div>
-              <div><label style={s.label}>금액 (원)</label><input style={s.input} type="number" placeholder="0" value={form.amount} onChange={e => setF('amount', e.target.value)} /></div>
               <div>
-                <label style={s.label}>주기</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>이름</label>
+                <input value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="예: 넷플릭스" style={fieldStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>금액</label>
+                <input type="number" value={form.amount} onChange={(e) => setField('amount', e.target.value)} placeholder="0" style={fieldStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>주기</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {CYCLES.map(c => (
-                    <button key={c.value} onClick={() => setF('cycle', c.value)} style={{ flex: 1, padding: '9px', borderRadius: 'var(--radius-sm)', border: form.cycle === c.value ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.cycle === c.value ? 'var(--accent-bg)' : 'var(--surface)', fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 700, color: form.cycle === c.value ? 'var(--accent)' : 'var(--text2)', cursor: 'pointer', minWidth: 60 }}>{c.label}</button>
+                  {CYCLES.map((cycle) => (
+                    <button key={cycle.value} type="button" onClick={() => setField('cycle', cycle.value)} style={{ flex: 1, minWidth: 72, padding: '9px', borderRadius: 'var(--radius-sm)', border: form.cycle === cycle.value ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.cycle === cycle.value ? 'var(--accent-bg)' : 'var(--surface)', cursor: 'pointer', fontWeight: 800, color: form.cycle === cycle.value ? 'var(--accent)' : 'var(--text2)' }}>
+                      {cycle.label}
+                    </button>
                   ))}
                 </div>
               </div>
               {(form.cycle === 'monthly' || form.cycle === 'yearly') && (
-                <div><label style={s.label}>결제일</label><input style={s.input} type="number" min="1" max="31" placeholder="1" value={form.day_of_month} onChange={e => setF('day_of_month', e.target.value)} /></div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>청구일</label>
+                  <input type="number" min="1" max="31" value={form.day_of_month} onChange={(e) => setField('day_of_month', e.target.value)} style={fieldStyle} />
+                </div>
               )}
               <div>
-                <label style={s.label}>카테고리</label>
-                <select style={{ ...s.input, cursor: 'pointer' }} value={form.category_id} onChange={e => setF('category_id', e.target.value)}>
-                  <option value="">미분류</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                </select>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>카테고리 이름</label>
+                <input list="recurring-categories" value={form.category_name} onChange={(e) => setField('category_name', e.target.value)} style={fieldStyle} />
+                <datalist id="recurring-categories">
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name} />
+                  ))}
+                </datalist>
               </div>
-              <div><label style={s.label}>계정</label><input style={s.input} placeholder="예: 신용카드" value={form.account} onChange={e => setF('account', e.target.value)} /></div>
-              <div><label style={s.label}>메모 (선택)</label><input style={s.input} placeholder="간단한 메모" value={form.memo} onChange={e => setF('memo', e.target.value)} /></div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                <button onClick={() => setShowModal(false)} style={{ ...s.btn(false), flex: 1, padding: '12px' }}>취소</button>
-                {editItem && <button onClick={() => handleDelete(editItem.id)} style={{ ...s.btn(false), color: 'var(--red)', padding: '12px 16px' }}>삭제</button>}
-                <button onClick={handleSave} disabled={saving} style={{ ...s.btn(true), flex: 1, padding: '12px' }}>{saving ? '저장 중...' : '저장'}</button>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>계정</label>
+                <input value={form.account} onChange={(e) => setField('account', e.target.value)} placeholder="예: 신용카드" style={fieldStyle} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>메모</label>
+                <input value={form.memo} onChange={(e) => setField('memo', e.target.value)} placeholder="선택 입력" style={fieldStyle} />
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <button type="button" onClick={() => setShowModal(false)} style={{ ...buttonStyle(false), flex: 1 }}>
+                  취소
+                </button>
+                {editItem && (
+                  <button type="button" onClick={() => handleDelete(editItem.id)} style={{ ...buttonStyle(false), color: 'var(--red)' }}>
+                    삭제
+                  </button>
+                )}
+                <button type="button" onClick={handleSave} disabled={saving} style={{ ...buttonStyle(true), flex: 1 }}>
+                  {saving ? '저장 중...' : '저장'}
+                </button>
               </div>
             </div>
           </div>
