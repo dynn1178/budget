@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { fmtW } from '@/lib/utils'
 import { Toggle } from '@/components/ui/Toggle'
 import { SectionTitle } from '@/components/ui/SectionTitle'
@@ -39,7 +38,6 @@ export function RecurringClient({
   userId: string
 }) {
   const sb = createClient()
-  const router = useRouter()
   const { isMobile } = useWindowSize()
   const [recurring, setRecurring] = useState(initialRecurring)
   const [showModal, setShowModal] = useState(false)
@@ -105,13 +103,14 @@ export function RecurringClient({
       memo: form.memo.trim(),
     }
     if (editItem) {
-      await sb.from('budget_recurring').update(payload).eq('id', editItem.id)
+      const { data } = await sb.from('budget_recurring').update(payload).eq('id', editItem.id).select().single()
+      if (data) setRecurring(prev => prev.map(i => i.id === editItem.id ? data : i))
     } else {
-      await sb.from('budget_recurring').insert({ ...payload, user_id: userId, active: true })
+      const { data } = await sb.from('budget_recurring').insert({ ...payload, user_id: userId, active: true }).select().single()
+      if (data) setRecurring(prev => [...prev, data])
     }
     setSaving(false)
     setShowModal(false)
-    router.refresh()
   }
 
   const handleDelete = async (id: string) => {
