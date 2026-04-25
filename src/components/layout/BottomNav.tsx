@@ -2,11 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { NAV } from './nav-items'
+import { BOTTOM_NAV } from './nav-items'
 
 export function BottomNav() {
   const pathname = usePathname()
-  const shown = NAV.slice(0, 5)
 
   return (
     <nav
@@ -17,18 +16,20 @@ export function BottomNav() {
         bottom: 0,
         zIndex: 200,
         display: 'flex',
-        background: 'rgba(255,255,255,0.92)',
+        background: 'var(--surface)',
         backdropFilter: 'blur(14px)',
         borderTop: '1px solid var(--border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      {shown.map((item) => {
-        const active = pathname === `/${item.id}` || (item.id === 'home' && pathname === '/')
+      {BOTTOM_NAV.map((item) => {
+        const active =
+          pathname === `/${item.id}` ||
+          (item.id === 'home' && (pathname === '/' || pathname === '/home'))
         return (
           <Link
             key={item.id}
-            href={`/${item.id}`}
+            href={item.id === 'home' ? '/home' : `/${item.id}`}
             style={{
               flex: 1,
               display: 'flex',
@@ -42,7 +43,7 @@ export function BottomNav() {
               fontWeight: active ? 800 : 600,
             }}
           >
-            <span style={{ fontSize: 11 }}>{item.icon}</span>
+            <span style={{ fontSize: 20, lineHeight: 1 }}>{item.icon}</span>
             <span>{item.short}</span>
           </Link>
         )

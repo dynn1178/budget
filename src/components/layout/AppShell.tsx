@@ -8,13 +8,15 @@ import { useWindowSize } from '@/hooks/useWindowSize'
 
 const PAGE_TITLES: Record<string, string> = {
   home: '홈',
-  entry: '지출 입력',
-  transactions: '지출 내역',
+  entry: '지출 기록',
+  transactions: '지출 현황',
   analytics: '지출 분석',
   assets: '자산 관리',
   recurring: '정기 지출',
-  family: '가족 공유',
+  budget: '예산 설정',
   categories: '카테고리',
+  family: '가족 공유',
+  settings: '설정',
 }
 
 interface AppShellProps {
@@ -28,9 +30,10 @@ export function AppShell({ children, userName, userAvatar }: AppShellProps) {
   const { isMobile, isTablet } = useWindowSize()
   const [collapsed, setCollapsed] = useState(false)
 
-  const pageId = pathname.replace('/', '') || 'home'
+  const pageId = pathname.replace('/', '').split('/')[0] || 'home'
   const pageTitle = PAGE_TITLES[pageId] || '가계부'
-  const sidebarWidth = isMobile ? 0 : isTablet || collapsed ? 72 : 236
+  const sidebarWidth = isMobile ? 0 : isTablet || collapsed ? 64 : 224
+  const showEntryButton = pageId === 'home' || pageId === 'entry' || pageId === 'transactions'
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
@@ -61,7 +64,7 @@ export function AppShell({ children, userName, userAvatar }: AppShellProps) {
               top: 0,
               zIndex: 150,
               padding: '14px 16px',
-              background: 'rgba(244,241,236,0.92)',
+              background: 'var(--surface)',
               backdropFilter: 'blur(14px)',
               borderBottom: '1px solid var(--border)',
               display: 'flex',
@@ -75,20 +78,22 @@ export function AppShell({ children, userName, userAvatar }: AppShellProps) {
                 {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
               </div>
             </div>
-            <a
-              href="/entry"
-              style={{
-                padding: '8px 12px',
-                borderRadius: 999,
-                background: 'var(--accent)',
-                color: '#fff',
-                textDecoration: 'none',
-                fontSize: 12,
-                fontWeight: 800,
-              }}
-            >
-              기록
-            </a>
+            {showEntryButton && (
+              <a
+                href="/entry"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 999,
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  fontSize: 12,
+                  fontWeight: 800,
+                }}
+              >
+                기록
+              </a>
+            )}
           </div>
         ) : (
           <div
@@ -110,21 +115,23 @@ export function AppShell({ children, userName, userAvatar }: AppShellProps) {
                 })}
               </div>
             </div>
-            <a
-              href="/entry"
-              style={{
-                padding: '10px 18px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--accent)',
-                color: '#fff',
-                textDecoration: 'none',
-                fontSize: 13,
-                fontWeight: 800,
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              새 지출 기록
-            </a>
+            {showEntryButton && (
+              <a
+                href="/entry"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
+                새 지출 기록
+              </a>
+            )}
           </div>
         )}
 

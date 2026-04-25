@@ -1,12 +1,22 @@
-export const NAV = [
-  { id: 'home', label: '홈', icon: '홈', short: '홈' },
-  { id: 'entry', label: '지출 입력', icon: '입력', short: '입력' },
-  { id: 'transactions', label: '지출 내역', icon: '내역', short: '내역' },
-  { id: 'analytics', label: '분석', icon: '분석', short: '분석' },
-  { id: 'assets', label: '자산', icon: '자산', short: '자산' },
-  { id: 'recurring', label: '정기 지출', icon: '정기', short: '정기' },
-  { id: 'categories', label: '카테고리', icon: '분류', short: '분류' },
-  { id: 'family', label: '가족 공유', icon: '가족', short: '공유' },
-] as const
+export type NavItem =
+  | { id: string; label: string; icon: string; short: string; divider?: false }
+  | { id: 'divider'; label?: never; icon?: never; short?: never; divider: true }
 
-export type NavId = (typeof NAV)[number]['id']
+export const NAV: NavItem[] = [
+  { id: 'home',         label: '홈',       icon: '🏠', short: '홈'   },
+  { id: 'entry',        label: '지출 기록',  icon: '✏️', short: '기록' },
+  { id: 'recurring',    label: '정기 지출',  icon: '🔁', short: '정기' },
+  { id: 'transactions', label: '지출 현황',  icon: '📋', short: '현황' },
+  { id: 'analytics',    label: '지출 분석',  icon: '📊', short: '분석' },
+  { id: 'assets',       label: '자산 관리',  icon: '💰', short: '자산' },
+  { id: 'budget',       label: '예산 설정',  icon: '🎯', short: '예산' },
+  { id: 'divider',      divider: true },
+  { id: 'categories',   label: '카테고리',   icon: '🏷️', short: '분류' },
+  { id: 'family',       label: '가족 공유',  icon: '👨‍👩‍👧', short: '가족' },
+  { id: 'settings',     label: '설정',      icon: '⚙️', short: '설정' },
+]
+
+// First 5 non-divider items for the mobile bottom nav
+export const BOTTOM_NAV = NAV.filter(
+  (n): n is Extract<NavItem, { divider?: false }> => !n.divider
+).slice(0, 5)
