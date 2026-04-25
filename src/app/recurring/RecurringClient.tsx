@@ -46,7 +46,7 @@ export function RecurringClient({
   const [editItem, setEditItem] = useState<BudgetRecurring | null>(null)
   const [form, setForm] = useState<FormState>({
     name: '',
-    icon: ICONS[0],
+    icon: RECURRING_ICONS[0],
     amount: '',
     cycle: 'monthly',
     day_of_month: '1',
