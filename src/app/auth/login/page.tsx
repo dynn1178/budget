@@ -20,9 +20,12 @@ export default function LoginPage() {
     setError('')
 
     const sb = createClient()
+    const callbackUrl = new URL('/auth/callback', window.location.href)
+    callbackUrl.searchParams.set('next', '/home')
+
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     })
 
     if (error) {
