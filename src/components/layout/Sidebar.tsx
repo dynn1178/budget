@@ -49,27 +49,12 @@ export function Sidebar({
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-            background: 'var(--accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: 16,
-            fontWeight: 900,
-            flexShrink: 0,
-          }}
-        >
-          ₩
-        </div>
-        {!isCollapsed && (
+        {isCollapsed ? (
+          <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--accent)', userSelect: 'none' }}>₩</div>
+        ) : (
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
-              WhereDidItGo
+            <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
+              <span style={{ color: 'var(--accent)' }}>₩</span>hereDidItGo
             </div>
             <div style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 500, letterSpacing: '0.05em', marginTop: 1 }}>
               가계부

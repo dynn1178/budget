@@ -6,7 +6,7 @@ import { fmtW } from '@/lib/utils'
 import { Toggle } from '@/components/ui/Toggle'
 import { SectionTitle } from '@/components/ui/SectionTitle'
 import { useWindowSize } from '@/hooks/useWindowSize'
-import type { BudgetCategory, BudgetRecurring, RecurringCycle } from '@/types/database'
+import type { BudgetAsset, BudgetCategory, BudgetRecurring, RecurringCycle } from '@/types/database'
 
 const CYCLES: { value: RecurringCycle; label: string }[] = [
   { value: 'daily', label: '매일' },
@@ -15,7 +15,7 @@ const CYCLES: { value: RecurringCycle; label: string }[] = [
   { value: 'yearly', label: '매년' },
 ]
 
-const ICONS = ['구독', '보험', '통신', '주거', '교육', '교통', '건강', '문화']
+const RECURRING_ICONS = ['🔄','💳','📱','🏠','📚','🚌','💊','🎬','🎮','☁️','🛡️','🏋️']
 
 interface FormState {
   name: string
@@ -31,10 +31,12 @@ interface FormState {
 export function RecurringClient({
   recurring: initialRecurring,
   categories,
+  assets,
   userId,
 }: {
   recurring: BudgetRecurring[]
   categories: BudgetCategory[]
+  assets: Pick<BudgetAsset, 'id' | 'name' | 'icon' | 'asset_type'>[]
   userId: string
 }) {
   const sb = createClient()
@@ -70,7 +72,7 @@ export function RecurringClient({
 
   const openAdd = () => {
     setEditItem(null)
-    setForm({ name: '', icon: ICONS[0], amount: '', cycle: 'monthly', day_of_month: '1', category_name: categories[0]?.name || '', account: '', memo: '' })
+    setForm({ name: '', icon: RECURRING_ICONS[0], amount: '', cycle: 'monthly', day_of_month: '1', category_name: categories[0]?.name || '', account: assets[0]?.name || '', memo: '' })
     setShowModal(true)
   }
 
@@ -313,8 +315,8 @@ export function RecurringClient({
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>아이콘</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {ICONS.map(icon => (
-                    <button key={icon} type="button" onClick={() => setField('icon', icon)} style={{ padding: '9px 12px', borderRadius: 10, border: form.icon === icon ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.icon === icon ? 'var(--accent-bg)' : 'var(--bg)', cursor: 'pointer', fontWeight: 800, fontSize: 12 }}>
+                  {RECURRING_ICONS.map(icon => (
+                    <button key={icon} type="button" onClick={() => setField('icon', icon)} style={{ width: 42, height: 42, borderRadius: 10, border: form.icon === icon ? '2px solid var(--accent)' : '1px solid var(--border2)', background: form.icon === icon ? 'var(--accent-bg)' : 'var(--bg)', cursor: 'pointer', fontSize: 18 }}>
                       {icon}
                     </button>
                   ))}
@@ -345,15 +347,30 @@ export function RecurringClient({
                 </div>
               )}
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>카테고리 이름</label>
-                <input list="recurring-categories" value={form.category_name} onChange={e => setField('category_name', e.target.value)} style={fieldStyle} />
-                <datalist id="recurring-categories">
-                  {categories.map(c => <option key={c.id} value={c.name} />)}
-                </datalist>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>카테고리</label>
+                {categories.length > 0 ? (
+                  <select value={form.category_name} onChange={e => setField('category_name', e.target.value)} style={fieldStyle}>
+                    <option value="">카테고리 없음</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.name}>{c.icon} {c.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input value={form.category_name} onChange={e => setField('category_name', e.target.value)} placeholder="카테고리 탭에서 먼저 추가하세요" style={fieldStyle} />
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>결제수단</label>
-                <input value={form.account} onChange={e => setField('account', e.target.value)} placeholder="예: 신용카드" style={fieldStyle} />
+                {assets.length > 0 ? (
+                  <select value={form.account} onChange={e => setField('account', e.target.value)} style={fieldStyle}>
+                    <option value="">선택 안 함</option>
+                    {assets.map(a => (
+                      <option key={a.id} value={a.name}>{a.icon} {a.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input value={form.account} onChange={e => setField('account', e.target.value)} placeholder="카테고리 탭 → 자산 분류에서 추가" style={fieldStyle} />
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>메모</label>

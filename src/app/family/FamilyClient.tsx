@@ -88,7 +88,7 @@ export function FamilyClient({ userId, userName, membership, members }: Props) {
     }
     const { error: memberError } = await sb
       .from('budget_family_members')
-      .insert({ group_id: group.id, user_id: userId, role: 'owner' })
+      .insert({ group_id: group.id, user_id: userId, role: 'owner', display_name: userName })
     if (memberError) {
       setMsg(memberError.message)
       setLoading(false)
@@ -212,7 +212,7 @@ export function FamilyClient({ userId, userName, membership, members }: Props) {
                     fontSize: 12, fontWeight: 900, color: '#fff', flexShrink: 0,
                   }}
                 >
-                  {(m.display_name || m.user_id).slice(0, 1).toUpperCase()}
+                  {(m.user_id === userId ? userName : (m.display_name || m.user_id)).slice(0, 1).toUpperCase()}
                 </div>
               ))}
             </div>
@@ -238,12 +238,12 @@ export function FamilyClient({ userId, userName, membership, members }: Props) {
             >
               {/* Avatar */}
               <div style={{ width: 44, height: 44, borderRadius: '50%', background: color, border: `2px solid ${color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#fff', fontSize: 16, flexShrink: 0 }}>
-                {(member.display_name || member.user_id).slice(0, 1).toUpperCase()}
+                {(isMe ? userName : (member.display_name || member.user_id)).slice(0, 1).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-                    {member.display_name || `사용자 ${member.user_id.slice(0, 8)}`}
+                    {isMe ? userName : (member.display_name || `사용자 ${member.user_id.slice(0, 8)}`)}
                   </span>
                   {/* Role badge */}
                   <span style={{ fontSize: 10, fontWeight: 800, color: roleColors[member.role] || 'var(--text2)', background: roleBgColors[member.role] || 'var(--bg2)', padding: '2px 7px', borderRadius: 999 }}>

@@ -78,6 +78,7 @@ export interface BudgetMonthlySetting {
   year: number
   month: number
   budget_amount: number
+  category_budgets: Record<string, number>   // category_id → budget_amount
   created_at: string
 }
 

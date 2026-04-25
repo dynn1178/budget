@@ -57,6 +57,24 @@ export function SettingsClient({ settings, userId, userEmail, userName, userAvat
   const [cloudSync, setCloudSync] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 닉네임 편집
+  const [displayName, setDisplayName] = useState(userName || '')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameSaved, setNameSaved] = useState(false)
+  const [nameError, setNameError] = useState('')
+
+  const handleSaveName = async () => {
+    if (!displayName.trim()) { setNameError('닉네임을 입력해 주세요.'); return }
+    setNameError('')
+    setNameSaving(true)
+    const { error } = await sb.auth.updateUser({ data: { full_name: displayName.trim() } })
+    setNameSaving(false)
+    if (error) { setNameError(error.message); return }
+    setNameSaved(true)
+    setTimeout(() => setNameSaved(false), 2500)
+    router.refresh()
+  }
+
   const handleSaveToCloud = async () => {
     setSaving(true)
     await sb.from('budget_settings').upsert(
@@ -134,17 +152,17 @@ export function SettingsClient({ settings, userId, userEmail, userName, userAvat
       {/* 계정 */}
       <div style={cardStyle}>
         <SectionTitle>계정</SectionTitle>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
           {userAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={userAvatar} alt="avatar" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
           ) : (
             <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, color: '#fff', fontWeight: 900, flexShrink: 0 }}>
-              {(userName || userEmail)[0]?.toUpperCase() || 'U'}
+              {(displayName || userEmail)[0]?.toUpperCase() || 'U'}
             </div>
           )}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{userName || '이름 없음'}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{displayName || userName || '이름 없음'}</div>
             <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>{userEmail}</div>
             <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{ fontSize: 13 }}>🔐</span>
@@ -152,6 +170,46 @@ export function SettingsClient({ settings, userId, userEmail, userName, userAvat
             </div>
           </div>
         </div>
+
+        {/* 닉네임 편집 */}
+        <div style={{ marginBottom: 16, padding: '14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)' }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+            닉네임 변경
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              placeholder="표시될 이름을 입력하세요"
+              onKeyDown={e => e.key === 'Enter' && handleSaveName()}
+              style={{
+                flex: 1, padding: '10px 13px', borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border2)', background: 'var(--surface)',
+                color: 'var(--text)', fontSize: 14, outline: 'none',
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleSaveName}
+              disabled={nameSaving}
+              style={{
+                padding: '10px 18px', borderRadius: 'var(--radius-sm)', border: 'none',
+                background: nameSaved ? 'var(--green)' : 'var(--accent)',
+                color: '#fff', fontWeight: 800, fontSize: 13, cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {nameSaving ? '저장 중...' : nameSaved ? '✓ 저장됨' : '저장'}
+            </button>
+          </div>
+          {nameError && (
+            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--red)', fontWeight: 700 }}>{nameError}</div>
+          )}
+          <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text3)' }}>
+            사이드바, 가족 공유 등 전체 화면에 반영됩니다.
+          </div>
+        </div>
+
         <form action="/auth/signout" method="POST">
           <button type="submit" style={{ padding: '9px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border2)', background: 'var(--bg2)', color: 'var(--text2)', fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             로그아웃

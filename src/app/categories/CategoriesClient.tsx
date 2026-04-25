@@ -47,6 +47,7 @@ export function CategoriesClient({ categories: initialCategories, assets: initia
   const [editAsset, setEditAsset] = useState<BudgetAsset | null>(null)
   const [assetForm, setAssetForm] = useState<AssetForm>({ name: '', icon: ASSET_ICONS[0], amount: '', asset_type: 'asset', note: '' })
   const [savingAsset, setSavingAsset] = useState(false)
+  const [assetError, setAssetError] = useState('')
 
   // ── 공통 스타일
   const cardStyle = {
@@ -147,6 +148,7 @@ export function CategoriesClient({ categories: initialCategories, assets: initia
   // ─────────────────────────────────────────────
   const openAddAsset = () => {
     setEditAsset(null)
+    setAssetError('')
     setAssetForm({ name: '', icon: ASSET_ICONS[0], amount: '', asset_type: 'asset', note: '' })
     setShowAssetModal(true)
   }
@@ -164,8 +166,11 @@ export function CategoriesClient({ categories: initialCategories, assets: initia
   }
 
   const handleSaveAsset = async () => {
-    if (!assetForm.name.trim() || !assetForm.amount) return
+    setAssetError('')
+    if (!assetForm.name.trim()) { setAssetError('이름을 입력해 주세요.'); return }
+    if (!assetForm.amount || Number(assetForm.amount) < 0) { setAssetError('금액을 입력해 주세요.'); return }
     setSavingAsset(true)
+
     const amount = Number(assetForm.amount) * (assetForm.asset_type === 'liability' ? -1 : 1)
     const payload = {
       name: assetForm.name.trim(),
@@ -176,19 +181,21 @@ export function CategoriesClient({ categories: initialCategories, assets: initia
     }
 
     if (editAsset) {
-      const { data } = await sb
+      const { data, error } = await sb
         .from('budget_assets')
         .update(payload)
         .eq('id', editAsset.id)
         .select()
         .single()
+      if (error) { setSavingAsset(false); setAssetError(error.message); return }
       if (data) setAssets(prev => prev.map(a => a.id === editAsset.id ? data : a))
     } else {
-      const { data } = await sb
+      const { data, error } = await sb
         .from('budget_assets')
         .insert({ ...payload, user_id: userId, sort_order: assets.length })
         .select()
         .single()
+      if (error) { setSavingAsset(false); setAssetError(error.message); return }
       if (data) setAssets(prev => [...prev, data])
     }
 
@@ -581,12 +588,20 @@ export function CategoriesClient({ categories: initialCategories, assets: initia
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', marginBottom: 6 }}>금액 (원)</label>
                 <input
                   type="number"
+                  min="0"
                   value={assetForm.amount}
                   onChange={e => setAssetForm(prev => ({ ...prev, amount: e.target.value }))}
                   placeholder="0"
                   style={fieldStyle}
                 />
               </div>
+
+              {/* 오류 메시지 */}
+              {assetError && (
+                <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--red-bg)', color: 'var(--red)', fontSize: 13, fontWeight: 700 }}>
+                  {assetError}
+                </div>
+              )}
 
               {/* 메모 */}
               <div>

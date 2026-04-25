@@ -7,7 +7,6 @@ import { fmtW } from '@/lib/utils'
 import { SectionTitle } from '@/components/ui/SectionTitle'
 import type { BudgetCategory, BudgetAsset } from '@/types/database'
 
-// 자산이 없을 때 기본 결제 수단
 const DEFAULT_ACCOUNTS = ['현금', '계좌이체']
 
 const TABS = [
@@ -17,7 +16,18 @@ const TABS = [
   { id: 'push', label: '알림 인식' },
 ] as const
 
-const AI_SUGGESTIONS = ['스타벅스 강남점', '쿠팡 로켓배송', '배달의민족', 'GS25', '이마트 은평점']
+// 자주 쓰는 사용처 목록 (AI 추천 데모) — 입력하지 않아도 전체 표시, 입력 시 필터링
+const AI_SUGGESTIONS = [
+  '스타벅스', '이디야커피', '메가커피', '컴포즈커피', '할리스',
+  '맥도날드', '버거킹', '롯데리아', 'KFC', '서브웨이',
+  '편의점 CU', 'GS25', '세븐일레븐', '이마트24',
+  '배달의민족', '쿠팡이츠', '요기요',
+  '쿠팡', '11번가', 'G마켓', '옥션', '네이버쇼핑',
+  '이마트', '홈플러스', '롯데마트', '코스트코',
+  '넷플릭스', '유튜브 프리미엄', '애플', '구글플레이', '카카오',
+  '카카오택시', '티머니', '지하철', 'KTX',
+  '올리브영', '다이소', '무신사',
+]
 
 interface Props {
   categories: BudgetCategory[]
@@ -58,6 +68,7 @@ export function EntryClient({ categories, assets, userId }: Props) {
   const [smsText, setSmsText] = useState('')
   const [parsedResult, setParsedResult] = useState<Partial<FormState> | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [merchantFocused, setMerchantFocused] = useState(false)
 
   const updateField = (key: keyof FormState, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }))
@@ -202,7 +213,7 @@ export function EntryClient({ categories, assets, userId }: Props) {
             </div>
           )}
 
-          {/* 금액 */}
+          {/* ① 금액 */}
           <div style={{ marginBottom: 18 }}>
             <label style={labelStyle}>금액</label>
             <input
@@ -227,59 +238,37 @@ export function EntryClient({ categories, assets, userId }: Props) {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-            <div>
-              <label style={labelStyle}>날짜</label>
-              <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)} style={fieldStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>
-                결제수단
-                {assets.length === 0 && (
-                  <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--accent)', fontWeight: 700, textTransform: 'none' }}>
-                    (자산 관리에서 추가)
-                  </span>
-                )}
-              </label>
-              <select value={form.account} onChange={e => updateField('account', e.target.value)} style={fieldStyle}>
-                {assets.length > 0 ? (
-                  assets.map(a => (
-                    <option key={a.id} value={a.name}>
-                      {a.icon} {a.name}
-                    </option>
-                  ))
-                ) : (
-                  DEFAULT_ACCOUNTS.map(a => <option key={a} value={a}>{a}</option>)
-                )}
-              </select>
-            </div>
+          {/* ② 날짜 */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>날짜</label>
+            <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)} style={fieldStyle} />
           </div>
 
-          <div style={{ marginTop: 14, position: 'relative' }}>
+          {/* ③ 사용처 (AI 추천) */}
+          <div style={{ marginBottom: 14, position: 'relative' }}>
             <label style={labelStyle}>사용처</label>
             <input
               value={form.merchant}
-              onChange={e => {
-                updateField('merchant', e.target.value)
-                setShowSuggestions(e.target.value.length > 0)
-              }}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              placeholder="예: 스타벅스 강남점"
+              onChange={e => { updateField('merchant', e.target.value); setShowSuggestions(true) }}
+              onFocus={() => { setMerchantFocused(true); setShowSuggestions(true) }}
+              onBlur={() => setTimeout(() => { setShowSuggestions(false); setMerchantFocused(false) }, 150)}
+              placeholder="예: 스타벅스"
               style={fieldStyle}
             />
-            {showSuggestions && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow)', zIndex: 100, overflow: 'hidden' }}>
-                <div style={{ padding: '8px 12px', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.07em', borderBottom: '1px solid var(--border)' }}>
-                  AI 추천
+            {(showSuggestions || merchantFocused) && showSuggestions && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow)', zIndex: 100, overflow: 'hidden', maxHeight: 220, overflowY: 'auto' }}>
+                <div style={{ padding: '6px 12px', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.07em', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, background: 'var(--surface)' }}>
+                  자주 쓰는 사용처
                 </div>
-                {AI_SUGGESTIONS.filter(s =>
-                  s.toLowerCase().includes(form.merchant.toLowerCase())
-                ).slice(0, 4).map(s => (
+                {(form.merchant.trim()
+                  ? AI_SUGGESTIONS.filter(s => s.replace(/\s/g, '').toLowerCase().includes(form.merchant.replace(/\s/g, '').toLowerCase()))
+                  : AI_SUGGESTIONS
+                ).slice(0, 8).map(s => (
                   <button
                     key={s}
                     type="button"
                     onMouseDown={() => { updateField('merchant', s); setShowSuggestions(false) }}
-                    style={{ display: 'block', width: '100%', padding: '10px 12px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}
+                    style={{ display: 'block', width: '100%', padding: '9px 12px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}
                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg2)')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
@@ -290,17 +279,39 @@ export function EntryClient({ categories, assets, userId }: Props) {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginTop: 14 }}>
+          {/* ④ 결제수단 + 카테고리 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 14 }}>
+            <div>
+              <label style={labelStyle}>
+                결제수단
+                {assets.length === 0 && (
+                  <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--accent)', fontWeight: 700, textTransform: 'none' }}>
+                    (카테고리 탭에서 추가)
+                  </span>
+                )}
+              </label>
+              <select value={form.account} onChange={e => updateField('account', e.target.value)} style={fieldStyle}>
+                {assets.length > 0 ? (
+                  assets.map(a => (
+                    <option key={a.id} value={a.name}>{a.icon} {a.name}</option>
+                  ))
+                ) : (
+                  DEFAULT_ACCOUNTS.map(a => <option key={a} value={a}>{a}</option>)
+                )}
+              </select>
+            </div>
             <div>
               <label style={labelStyle}>카테고리</label>
               <select value={form.category_id} onChange={e => updateField('category_id', e.target.value)} style={fieldStyle}>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
               </select>
             </div>
-            <div>
-              <label style={labelStyle}>메모</label>
-              <input value={form.memo} onChange={e => updateField('memo', e.target.value)} placeholder="선택 입력" style={fieldStyle} />
-            </div>
+          </div>
+
+          {/* ⑤ 메모 */}
+          <div style={{ marginBottom: 0 }}>
+            <label style={labelStyle}>메모</label>
+            <input value={form.memo} onChange={e => updateField('memo', e.target.value)} placeholder="선택 입력" style={fieldStyle} />
           </div>
 
           {/* 복식부기 미리보기 */}
