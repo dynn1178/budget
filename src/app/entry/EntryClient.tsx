@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fmtW } from '@/lib/utils'
 import { SectionTitle } from '@/components/ui/SectionTitle'
-import type { BudgetCategory } from '@/types/database'
+import type { BudgetCategory, BudgetAsset } from '@/types/database'
 
-const ACCOUNTS = ['현대카드', '신한카드', '국민카드', '토스뱅크', '카카오뱅크', '현금', '계좌이체']
+// 자산이 없을 때 기본 결제 수단
+const DEFAULT_ACCOUNTS = ['현금', '계좌이체']
 
 const TABS = [
   { id: 'direct', label: '직접 입력' },
@@ -16,11 +17,11 @@ const TABS = [
   { id: 'push', label: '알림 인식' },
 ] as const
 
-// Static AI merchant suggestions
 const AI_SUGGESTIONS = ['스타벅스 강남점', '쿠팡 로켓배송', '배달의민족', 'GS25', '이마트 은평점']
 
 interface Props {
   categories: BudgetCategory[]
+  assets: Pick<BudgetAsset, 'id' | 'name' | 'icon' | 'asset_type'>[]
   userId: string
 }
 
@@ -33,16 +34,22 @@ interface FormState {
   memo: string
 }
 
-export function EntryClient({ categories, userId }: Props) {
+export function EntryClient({ categories, assets, userId }: Props) {
   const router = useRouter()
   const sb = createClient()
+
+  // 자산에서 결제 수단 목록 생성
+  const paymentOptions = assets.length > 0
+    ? assets.map(a => a.name)
+    : DEFAULT_ACCOUNTS
+
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('direct')
   const [form, setForm] = useState<FormState>({
     date: new Date().toISOString().slice(0, 10),
     amount: '',
     merchant: '',
     category_id: categories[0]?.id || '',
-    account: ACCOUNTS[0],
+    account: paymentOptions[0] || '',
     memo: '',
   })
   const [saving, setSaving] = useState(false)
@@ -52,11 +59,14 @@ export function EntryClient({ categories, userId }: Props) {
   const [parsedResult, setParsedResult] = useState<Partial<FormState> | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const updateField = (key: keyof FormState, value: string) => setForm(prev => ({ ...prev, [key]: value }))
+  const updateField = (key: keyof FormState, value: string) =>
+    setForm(prev => ({ ...prev, [key]: value }))
 
   const parseSMS = () => {
     const amountMatch = smsText.match(/([0-9,]+)\s*원/)
-    const merchantMatch = smsText.match(/\]\s*([^\n]+)/) || smsText.match(/([가-힣A-Za-z0-9 ]+)\s+\d{2}\/\d{2}/)
+    const merchantMatch =
+      smsText.match(/\]\s*([^\n]+)/) ||
+      smsText.match(/([가-힣A-Za-z0-9 ]+)\s+\d{2}\/\d{2}/)
     const dateMatch = smsText.match(/(\d{2})\/(\d{2})/)
 
     if (!amountMatch && !merchantMatch) {
@@ -64,14 +74,14 @@ export function EntryClient({ categories, userId }: Props) {
       setParsedResult(null)
       return
     }
-
     setError('')
-    const result: Partial<FormState> = {
+    setParsedResult({
       amount: amountMatch ? amountMatch[1].replace(/,/g, '') : form.amount,
       merchant: merchantMatch ? merchantMatch[1].trim() : form.merchant,
-      date: dateMatch ? `${new Date().getFullYear()}-${dateMatch[1]}-${dateMatch[2]}` : form.date,
-    }
-    setParsedResult(result)
+      date: dateMatch
+        ? `${new Date().getFullYear()}-${dateMatch[1]}-${dateMatch[2]}`
+        : form.date,
+    })
   }
 
   const applyParsed = () => {
@@ -109,12 +119,21 @@ export function EntryClient({ categories, userId }: Props) {
     }
     setSaved(true)
     setTimeout(() => {
+      setSaved(false)
+      setForm({
+        date: new Date().toISOString().slice(0, 10),
+        amount: '',
+        merchant: '',
+        category_id: categories[0]?.id || '',
+        account: paymentOptions[0] || '',
+        memo: '',
+      })
       router.push('/transactions')
-      router.refresh()
     }, 900)
   }
 
   const selectedCategory = categories.find(c => c.id === form.category_id)
+  const selectedAsset = assets.find(a => a.name === form.account)
 
   const fieldStyle = {
     width: '100%',
@@ -148,7 +167,7 @@ export function EntryClient({ categories, userId }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 720 }}>
-      {/* Tab bar */}
+      {/* 탭 바 */}
       <div style={{ display: 'flex', gap: 4, padding: 4, background: 'var(--bg2)', borderRadius: 'var(--radius-sm)' }}>
         {TABS.map(item => (
           <button
@@ -174,7 +193,7 @@ export function EntryClient({ categories, userId }: Props) {
         ))}
       </div>
 
-      {/* Tab: 직접 입력 */}
+      {/* 직접 입력 */}
       {tab === 'direct' && (
         <div style={cardStyle}>
           {error && (
@@ -183,7 +202,7 @@ export function EntryClient({ categories, userId }: Props) {
             </div>
           )}
 
-          {/* Amount input */}
+          {/* 금액 */}
           <div style={{ marginBottom: 18 }}>
             <label style={labelStyle}>금액</label>
             <input
@@ -208,15 +227,30 @@ export function EntryClient({ categories, userId }: Props) {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
             <div>
               <label style={labelStyle}>날짜</label>
               <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)} style={fieldStyle} />
             </div>
             <div>
-              <label style={labelStyle}>결제수단</label>
+              <label style={labelStyle}>
+                결제수단
+                {assets.length === 0 && (
+                  <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--accent)', fontWeight: 700, textTransform: 'none' }}>
+                    (자산 관리에서 추가)
+                  </span>
+                )}
+              </label>
               <select value={form.account} onChange={e => updateField('account', e.target.value)} style={fieldStyle}>
-                {ACCOUNTS.map(a => <option key={a} value={a}>{a}</option>)}
+                {assets.length > 0 ? (
+                  assets.map(a => (
+                    <option key={a.id} value={a.name}>
+                      {a.icon} {a.name}
+                    </option>
+                  ))
+                ) : (
+                  DEFAULT_ACCOUNTS.map(a => <option key={a} value={a}>{a}</option>)
+                )}
               </select>
             </div>
           </div>
@@ -225,18 +259,22 @@ export function EntryClient({ categories, userId }: Props) {
             <label style={labelStyle}>사용처</label>
             <input
               value={form.merchant}
-              onChange={e => { updateField('merchant', e.target.value); setShowSuggestions(e.target.value.length > 0) }}
+              onChange={e => {
+                updateField('merchant', e.target.value)
+                setShowSuggestions(e.target.value.length > 0)
+              }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="예: 스타벅스 강남점"
               style={fieldStyle}
             />
-            {/* AI suggest box */}
             {showSuggestions && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow)', zIndex: 100, overflow: 'hidden' }}>
                 <div style={{ padding: '8px 12px', fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.07em', borderBottom: '1px solid var(--border)' }}>
                   AI 추천
                 </div>
-                {AI_SUGGESTIONS.filter(s => s.toLowerCase().includes(form.merchant.toLowerCase())).slice(0, 4).map(s => (
+                {AI_SUGGESTIONS.filter(s =>
+                  s.toLowerCase().includes(form.merchant.toLowerCase())
+                ).slice(0, 4).map(s => (
                   <button
                     key={s}
                     type="button"
@@ -252,7 +290,7 @@ export function EntryClient({ categories, userId }: Props) {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginTop: 14 }}>
             <div>
               <label style={labelStyle}>카테고리</label>
               <select value={form.category_id} onChange={e => updateField('category_id', e.target.value)} style={fieldStyle}>
@@ -265,7 +303,7 @@ export function EntryClient({ categories, userId }: Props) {
             </div>
           </div>
 
-          {/* 복식부기 preview */}
+          {/* 복식부기 미리보기 */}
           <div style={{ marginTop: 18, padding: '14px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               기록 미리보기 (복식부기)
@@ -280,7 +318,9 @@ export function EntryClient({ categories, userId }: Props) {
               </div>
               <div style={{ padding: '8px 10px', background: 'var(--surface)', borderRadius: 'var(--radius-xs)', borderLeft: '3px solid var(--accent)' }}>
                 <div style={{ fontWeight: 700, color: 'var(--text3)', marginBottom: 3 }}>대변 (자산)</div>
-                <div style={{ fontWeight: 800, color: 'var(--text)' }}>{form.account || ACCOUNTS[0]}</div>
+                <div style={{ fontWeight: 800, color: 'var(--text)' }}>
+                  {selectedAsset ? `${selectedAsset.icon} ${selectedAsset.name}` : form.account || paymentOptions[0]}
+                </div>
                 <div style={{ color: 'var(--accent)', fontWeight: 900, fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>
                   {form.amount ? `-${fmtW(Number(form.amount))}` : '₩ —'}
                 </div>
@@ -314,7 +354,7 @@ export function EntryClient({ categories, userId }: Props) {
         </div>
       )}
 
-      {/* Tab: 문자 파싱 */}
+      {/* 문자 파싱 */}
       {tab === 'sms' && (
         <div style={cardStyle}>
           <SectionTitle sub="결제 문자를 붙여넣으면 금액과 사용처를 채워드립니다">문자 파싱</SectionTitle>
@@ -356,19 +396,18 @@ export function EntryClient({ categories, userId }: Props) {
         </div>
       )}
 
-      {/* Tab: 영수증 스캔 */}
+      {/* 영수증 스캔 */}
       {tab === 'receipt' && (
         <div style={cardStyle}>
           <SectionTitle sub="영수증 사진을 업로드하거나 데모 결과를 확인해 보세요">영수증 스캔</SectionTitle>
-          {/* Upload area */}
-          <div style={{ border: '2px dashed var(--border2)', borderRadius: 'var(--radius-sm)', padding: '40px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: 16 }}
+          <div
+            style={{ border: '2px dashed var(--border2)', borderRadius: 'var(--radius-sm)', padding: '40px 20px', textAlign: 'center', cursor: 'pointer', marginBottom: 16 }}
             onDragOver={e => e.preventDefault()}
           >
             <div style={{ fontSize: 32, marginBottom: 8 }}>📷</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text2)' }}>영수증 사진을 드래그하거나 클릭해서 업로드</div>
             <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>JPG, PNG 지원</div>
           </div>
-          {/* Demo result */}
           <div style={{ padding: '14px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em' }}>데모 결과</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
@@ -376,7 +415,9 @@ export function EntryClient({ categories, userId }: Props) {
               <div><span style={{ color: 'var(--text3)' }}>날짜: </span><strong>2026-04-24</strong></div>
               <div><span style={{ color: 'var(--text3)' }}>합계: </span><strong style={{ color: 'var(--red)' }}>₩48,700</strong></div>
             </div>
-            <button type="button" style={{ marginTop: 12, width: '100%', padding: '10px', border: 'none', borderRadius: 'var(--radius-sm)', background: 'var(--accent)', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+            <button
+              type="button"
+              style={{ marginTop: 12, width: '100%', padding: '10px', border: 'none', borderRadius: 'var(--radius-sm)', background: 'var(--accent)', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
               onClick={() => { updateField('merchant', '이마트 은평점'); updateField('amount', '48700'); updateField('date', '2026-04-24'); setTab('direct') }}
             >
               직접 입력에 적용하기
@@ -385,7 +426,7 @@ export function EntryClient({ categories, userId }: Props) {
         </div>
       )}
 
-      {/* Tab: 알림 인식 */}
+      {/* 알림 인식 */}
       {tab === 'push' && (
         <div style={cardStyle}>
           <SectionTitle sub="스마트폰 결제 알림을 자동으로 인식합니다">알림 인식</SectionTitle>

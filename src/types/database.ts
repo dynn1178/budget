@@ -72,6 +72,15 @@ export interface BudgetSetting {
   updated_at: string
 }
 
+export interface BudgetMonthlySetting {
+  id: string
+  user_id: string
+  year: number
+  month: number
+  budget_amount: number
+  created_at: string
+}
+
 export interface FamilyGroup {
   id: string
   owner_id: string

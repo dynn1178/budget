@@ -16,7 +16,7 @@ export default async function AssetsPage() {
 
   return (
     <AppShell userName={user.user_metadata?.full_name}>
-      <AssetsClient assets={assets || []} userId={user.id} />
+      <AssetsClient assets={assets || []} />
     </AppShell>
   )
 }
