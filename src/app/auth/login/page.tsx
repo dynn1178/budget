@@ -4,14 +4,22 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const sb = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const hasSupabaseEnv =
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
   async function handleGoogle() {
+    if (!hasSupabaseEnv) {
+      setError('Supabase 환경변수가 설정되지 않았습니다. Vercel 프로젝트 환경변수를 먼저 확인해 주세요.')
+      return
+    }
+
     setLoading(true)
     setError('')
 
+    const sb = createClient()
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${location.origin}/auth/callback` },
@@ -42,10 +50,16 @@ export default function LoginPage() {
           </div>
         )}
 
+        {!hasSupabaseEnv && (
+          <div style={{ padding: '10px 14px', background: 'var(--red-bg)', borderRadius: 8, fontSize: 13, color: 'var(--red)', marginBottom: 16, textAlign: 'center', lineHeight: 1.6 }}>
+            `NEXT_PUBLIC_SUPABASE_URL`과 `NEXT_PUBLIC_SUPABASE_ANON_KEY`가 필요합니다.
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleGoogle}
-          disabled={loading}
+          disabled={loading || !hasSupabaseEnv}
           style={{
             width: '100%',
             padding: '13px',
@@ -56,12 +70,12 @@ export default function LoginPage() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 10,
-            cursor: loading ? 'not-allowed' : 'pointer',
+            cursor: loading || !hasSupabaseEnv ? 'not-allowed' : 'pointer',
             fontSize: 15,
             fontWeight: 700,
             color: '#3C3C3C',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            opacity: loading ? 0.7 : 1,
+            opacity: loading || !hasSupabaseEnv ? 0.7 : 1,
           }}
         >
           <svg width="20" height="20" viewBox="0 0 48 48">
