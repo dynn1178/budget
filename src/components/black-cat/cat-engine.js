@@ -47,39 +47,39 @@ const f2 = (n) => Math.round(n * 100) / 100
 // Local cat space: facing +x, ground at y = 0, up is −y. Units ≈ px at size 1.
 const POSES = {
   stand: {
-    hipX: -26, hipY: -42, chestX: 22, chestY: -44, rHip: 18, rChest: 17,
-    headX: 44, headY: -70, headRot: 0, shoulderDy: 4, hindBend: 0,
-    fNx: 24, fNy: 0, fFx: 15, fFy: 0, hNx: -24, hNy: 0, hFx: -33, hFy: 0,
-    hauX: -2, hauY: 2, hauRx: 15, hauRy: 18, hauRot: 12,
-    tailBase: 0.95, tailCurl: -0.075, tailTip: 0.22, tailSway: 0.12, tailSpeed: 0.9, tailFront: 0,
+    hipX: -18, hipY: -30, chestX: 13, chestY: -31, rHip: 15.5, rChest: 15,
+    headX: 28, headY: -60, headRot: 0, shoulderDy: 4, hindBend: 0,
+    fNx: 15, fNy: 0, fFx: 8, fFy: 0, hNx: -17, hNy: 0, hFx: -24, hFy: 0,
+    hauX: -1, hauY: 2, hauRx: 12.5, hauRy: 13.5, hauRot: 12,
+    tailBase: 1.05, tailCurl: -0.07, tailTip: 0.26, tailSway: 0.12, tailSpeed: 0.9, tailFront: 0,
   },
   sit: {
-    hipX: -16, hipY: -23, chestX: 6, chestY: -54, rHip: 22, rChest: 16,
-    headX: 12, headY: -84, headRot: 0, shoulderDy: 10, hindBend: 1,
-    fNx: 14, fNy: 0, fFx: 6, fFy: 0, hNx: 10, hNy: 0, hFx: 2, hFy: 0,
-    hauX: 2, hauY: 4, hauRx: 21, hauRy: 17, hauRot: -8,
-    tailBase: -0.55, tailCurl: 0.02, tailTip: 0.42, tailSway: 0.05, tailSpeed: 0.5, tailFront: 0,
+    hipX: -10, hipY: -17, chestX: 4, chestY: -37, rHip: 18, rChest: 14,
+    headX: 7, headY: -66, headRot: 0, shoulderDy: 8, hindBend: 1,
+    fNx: 10, fNy: 0, fFx: 4, fFy: 0, hNx: 10, hNy: 0, hFx: 4, hFy: 0,
+    hauX: 2, hauY: 3, hauRx: 17, hauRy: 14, hauRot: -8,
+    tailBase: -0.35, tailCurl: 0.0, tailTip: 0.3, tailSway: 0.05, tailSpeed: 0.5, tailFront: 0,
   },
   lie: {
-    hipX: -26, hipY: -17, chestX: 16, chestY: -21, rHip: 17, rChest: 16,
-    headX: 34, headY: -46, headRot: 0, shoulderDy: 6, hindBend: 1,
-    fNx: 46, fNy: 0, fFx: 40, fFy: 0, hNx: -2, hNy: 0, hFx: -8, hFy: 0,
-    hauX: 4, hauY: 3, hauRx: 19, hauRy: 13, hauRot: -4,
-    tailBase: -1.15, tailCurl: -0.16, tailTip: 0, tailSway: 0.03, tailSpeed: 0.45, tailFront: 1,
+    hipX: -19, hipY: -13, chestX: 11, chestY: -15, rHip: 13.5, rChest: 13.5,
+    headX: 25, headY: -38, headRot: 0, shoulderDy: 5, hindBend: 1,
+    fNx: 34, fNy: 0, fFx: 29, fFy: 0, hNx: -2, hNy: 0, hFx: -7, hFy: 0,
+    hauX: 3, hauY: 2, hauRx: 15, hauRy: 10.5, hauRot: -4,
+    tailBase: -1.15, tailCurl: -0.2, tailTip: 0, tailSway: 0.03, tailSpeed: 0.45, tailFront: 1,
   },
   sleep: {
-    hipX: -22, hipY: -16, chestX: 12, chestY: -16, rHip: 18, rChest: 16,
-    headX: 32, headY: -22, headRot: 16, shoulderDy: 6, hindBend: 1,
-    fNx: 40, fNy: 0, fFx: 34, fFy: 0, hNx: 0, hNy: 0, hFx: -6, hFy: 0,
-    hauX: 4, hauY: 3, hauRx: 19, hauRy: 13, hauRot: -4,
-    tailBase: -1.05, tailCurl: -0.205, tailTip: 0, tailSway: 0.012, tailSpeed: 0.3, tailFront: 1,
+    hipX: -16, hipY: -12.5, chestX: 8, chestY: -12.5, rHip: 14.5, rChest: 13,
+    headX: 25, headY: -26, headRot: 14, shoulderDy: 5, hindBend: 1,
+    fNx: 32, fNy: 0, fFx: 27, fFy: 0, hNx: 0, hNy: 0, hFx: -5, hFy: 0,
+    hauX: 3, hauY: 2, hauRx: 15, hauRy: 10.5, hauRot: -4,
+    tailBase: -1.05, tailCurl: -0.24, tailTip: 0, tailSway: 0.012, tailSpeed: 0.3, tailFront: 1,
   },
   stretch: {
-    hipX: -24, hipY: -47, chestX: 14, chestY: -24, rHip: 18, rChest: 16,
-    headX: 37, headY: -32, headRot: -6, shoulderDy: 4, hindBend: 0,
-    fNx: 58, fNy: 0, fFx: 52, fFy: 0, hNx: -22, hNy: 0, hFx: -31, hFy: 0,
-    hauX: -2, hauY: 2, hauRx: 15, hauRy: 18, hauRot: 12,
-    tailBase: 1.25, tailCurl: -0.05, tailTip: 0.25, tailSway: 0.05, tailSpeed: 0.6, tailFront: 0,
+    hipX: -17, hipY: -34, chestX: 10, chestY: -17, rHip: 15, rChest: 13,
+    headX: 28, headY: -27, headRot: -6, shoulderDy: 4, hindBend: 0,
+    fNx: 42, fNy: 0, fFx: 37, fFy: 0, hNx: -16, hNy: 0, hFx: -23, hFy: 0,
+    hauX: -1, hauY: 2, hauRx: 12.5, hauRy: 13.5, hauRot: 12,
+    tailBase: 1.3, tailCurl: -0.05, tailTip: 0.28, tailSway: 0.05, tailSpeed: 0.6, tailFront: 0,
   },
 }
 
@@ -101,7 +101,9 @@ function omegaFor(k) {
   return 6.5
 }
 
-const HEAD_SCALE = 1.2
+const HEAD_SCALE = 1
+const LF = 14.5 // front leg bone length
+const LH = 14.5 // hind leg bone length
 
 const MEOWS = ['냐옹~', '냥!', '미야옹', '냐아~', '먀!']
 
@@ -120,106 +122,127 @@ export function createBlackCat(container, options = {}) {
 
   const uid = 'bc' + Math.random().toString(36).slice(2, 8)
   const defs = el('defs', null, svg)
-  const eyeGrad = el('radialGradient', { id: uid + 'eye', cx: '50%', cy: '55%', r: '60%' }, defs)
-  el('stop', { offset: '0%', 'stop-color': '#fbe57a' }, eyeGrad)
-  el('stop', { offset: '60%', 'stop-color': '#f4cc3c' }, eyeGrad)
-  el('stop', { offset: '100%', 'stop-color': '#d99a1e' }, eyeGrad)
-  const bellGrad = el('radialGradient', { id: uid + 'bell', cx: '35%', cy: '30%', r: '75%' }, defs)
-  el('stop', { offset: '0%', 'stop-color': '#fff3b0' }, bellGrad)
-  el('stop', { offset: '45%', 'stop-color': '#f2c23a' }, bellGrad)
-  el('stop', { offset: '100%', 'stop-color': '#b57d12' }, bellGrad)
-  // soft fluffy fur edge: tiny static noise displacement (pattern moves with the cat)
-  const fur = el('filter', { id: uid + 'fur', x: '-10%', y: '-10%', width: '120%', height: '120%' }, defs)
-  el('feTurbulence', { type: 'fractalNoise', baseFrequency: '0.55', numOctaves: '2', seed: '7', result: 'n' }, fur)
-  el('feDisplacementMap', { in: 'SourceGraphic', in2: 'n', scale: '1.5', xChannelSelector: 'R', yChannelSelector: 'G' }, fur)
-  const sheenGrad = el('radialGradient', { id: uid + 'sheen', cx: '50%', cy: '50%', r: '50%' }, defs)
-  el('stop', { offset: '0%', 'stop-color': '#fff', 'stop-opacity': '0.13' }, sheenGrad)
-  el('stop', { offset: '100%', 'stop-color': '#fff', 'stop-opacity': '0' }, sheenGrad)
+  const grad = (type, id, attrs, stops) => {
+    const g = el(type, { id: uid + id, ...attrs }, defs)
+    for (const [o, c, a] of stops) el('stop', { offset: o, 'stop-color': c, ...(a != null ? { 'stop-opacity': a } : {}) }, g)
+  }
+  // fur: warm charcoal, lit from the top (userSpace → no seams between body parts)
+  grad('linearGradient', 'fur', { gradientUnits: 'userSpaceOnUse', x1: 0, y1: -72, x2: 0, y2: 0 },
+    [['0', '#3e3546'], ['0.45', '#2b2431'], ['1', '#1b161f']])
+  grad('radialGradient', 'head', { gradientUnits: 'userSpaceOnUse', cx: -7, cy: -14, r: 46 },
+    [['0', '#4a3f53'], ['0.45', '#2e2735'], ['1', '#1c1720']])
+  grad('radialGradient', 'iris', { cx: '50%', cy: '72%', r: '70%' },
+    [['0', '#fff6b4'], ['0.38', '#ffd94c'], ['0.78', '#f4a81a'], ['1', '#b86d06']])
+  grad('radialGradient', 'pupil', { cx: '45%', cy: '40%', r: '60%' },
+    [['0', '#4d2c12'], ['1', '#120904']])
+  grad('linearGradient', 'ear', { x1: 0, y1: 1, x2: 0, y2: 0 },
+    [['0', '#e47a8b'], ['1', '#f9bcc3']])
+  grad('radialGradient', 'bell', { cx: '35%', cy: '30%', r: '75%' },
+    [['0', '#fff6c2'], ['0.45', '#f5c540'], ['1', '#b17810']])
+  grad('radialGradient', 'sheen', { cx: '50%', cy: '50%', r: '50%' },
+    [['0', '#fff', 0.16], ['1', '#fff', 0]])
+  grad('radialGradient', 'muzzle', { cx: '50%', cy: '40%', r: '50%' },
+    [['0', '#fff', 0.12], ['1', '#fff', 0]])
+  grad('radialGradient', 'blush', { cx: '50%', cy: '50%', r: '50%' },
+    [['0', '#ff7f9e', 0.9], ['1', '#ff7f9e', 0]])
 
-  const C_BODY = '#1f1c22'
-  const C_FAR = '#121015'
+  const C_BODY = `url(#${uid}fur)`
+  const C_FAR = '#18141c'
+  const C_HEAD = `url(#${uid}head)`
+  const legAttr = (c, w) => ({ fill: 'none', stroke: c, 'stroke-width': w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })
 
   const shadow = el('ellipse', { fill: '#000', opacity: '0.16' }, svg)
   const catG = el('g', null, svg)
   const jitterG = el('g', null, catG)
-  const FUR = `url(#${uid}fur)`
 
   const tailBackL = el('g', null, jitterG)
-  const legFF = el('path', { fill: 'none', stroke: C_FAR, 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, jitterG)
-  const pawFF = el('ellipse', { rx: 6.5, ry: 4, fill: C_FAR }, jitterG)
-  const legHF = el('path', { fill: 'none', stroke: C_FAR, 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, jitterG)
-  const pawHF = el('ellipse', { rx: 6.5, ry: 4, fill: C_FAR }, jitterG)
+  const legFF = el('path', legAttr(C_FAR, 11), jitterG)
+  const pawFF = el('ellipse', { rx: 6.4, ry: 4.4, fill: C_FAR }, jitterG)
+  const legHF = el('path', legAttr(C_FAR, 11), jitterG)
+  const pawHF = el('ellipse', { rx: 6.4, ry: 4.4, fill: C_FAR }, jitterG)
 
-  const bodyG = el('g', { fill: C_BODY, filter: FUR }, jitterG)
+  const bodyG = el('g', { fill: C_BODY }, jitterG)
   const bodyConn = el('polygon', null, bodyG)
   const hipC = el('circle', null, bodyG)
   const chestC = el('circle', null, bodyG)
   const bellyC = el('circle', null, bodyG)
-  const neck = el('line', { stroke: C_BODY, 'stroke-width': 21, 'stroke-linecap': 'round' }, bodyG)
+  const neck = el('line', { stroke: C_BODY, 'stroke-width': 22, 'stroke-linecap': 'round' }, bodyG)
   const sheen = el('ellipse', { fill: `url(#${uid}sheen)` }, jitterG)
-  const haunch = el('ellipse', { fill: C_BODY, filter: FUR }, jitterG)
-  const legHN = el('path', { fill: 'none', stroke: C_BODY, 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, jitterG)
-  const pawHN = el('ellipse', { rx: 6.8, ry: 4.2, fill: C_BODY }, jitterG)
+  const haunch = el('ellipse', { fill: C_BODY }, jitterG)
+  const legHN = el('path', legAttr(C_BODY, 11.5), jitterG)
+  const pawHN = el('ellipse', { rx: 6.8, ry: 4.6, fill: C_BODY }, jitterG)
 
-  // ---- head
+  // ---- head (front-facing, chibi: ~60px wide)
   const headG = el('g', null, jitterG)
   const mkEar = (parent) => {
     const g = el('g', null, parent)
-    el('path', { d: 'M-23,-3 C-25.5,-16 -23,-29 -18,-36.5 C-15.5,-39.5 -12.5,-38.5 -10.5,-35.5 L-0.5,-16 Z', fill: C_BODY, filter: FUR }, g)
-    el('path', { d: 'M-19,-9 C-20.5,-18 -19,-26.5 -16.4,-31.5 C-15.6,-32.6 -14.4,-32.4 -13.6,-31.3 L-6.5,-17.5 Z', fill: '#f29aa5', opacity: '0.9' }, g)
+    el('path', { d: 'M-30,-3 C-32.5,-18 -30,-34 -22.5,-43.5 C-20.3,-46.2 -17,-45.6 -15.2,-43 L-4.5,-21 Z', fill: C_HEAD }, g)
+    el('path', { d: 'M-26,-10 C-27.5,-21 -25.8,-31 -21.6,-37.6 C-20.6,-39 -19.2,-38.8 -18.4,-37.4 L-10,-21 Z', fill: `url(#${uid}ear)` }, g)
+    el('path', { d: 'M-24.5,-13 Q-22.5,-17.5 -19.5,-20 M-23.8,-17.5 Q-22,-21.5 -19.8,-23.6 M-25,-21 Q-23.6,-24 -21.8,-26', fill: 'none', stroke: '#f5eef2', 'stroke-width': 0.6, opacity: '0.7', 'stroke-linecap': 'round' }, g)
     return g
   }
   const earL = mkEar(headG)
   const earRWrap = el('g', { transform: 'scale(-1,1)' }, headG)
   const earR = mkEar(earRWrap)
-  el('path', { d: 'M-24.5,1 C-24.5,-12.5 -13.5,-21 0,-21 C13.5,-21 24.5,-12.5 24.5,1 C24.5,13.5 13.5,19.5 0,19.5 C-13.5,19.5 -24.5,13.5 -24.5,1 Z', fill: C_BODY, filter: FUR }, headG)
-  el('path', { d: 'M-23,3 L-29.5,7.5 L-24,9 L-28.5,13 L-20,13.5 Z M23,3 L29.5,7.5 L24,9 L28.5,13 L20,13.5 Z', fill: C_BODY, filter: FUR }, headG)
-  el('path', { d: 'M-4.6,-15.6 Q-2.2,-13.4 0,-15.2 Q2.2,-13.4 4.6,-15.6 Q2.6,-11.4 0,-9.2 Q-2.6,-11.4 -4.6,-15.6 Z', fill: '#f6f2ee' }, headG)
-  el('ellipse', { cx: -5, cy: -12, rx: 10, ry: 4.5, fill: `url(#${uid}sheen)` }, headG)
+  const collarG = el('g', null, headG)
+  el('path', { d: 'M-16,22 Q0,33.5 16,22', fill: 'none', stroke: '#e3475a', 'stroke-width': 4.4, 'stroke-linecap': 'round' }, collarG)
+  el('path', { d: 'M-14.5,22.4 Q0,32.6 14.5,22.4', fill: 'none', stroke: '#ff8a95', 'stroke-width': 1, 'stroke-linecap': 'round', opacity: '0.75' }, collarG)
+  const bellG = el('g', null, collarG)
+  el('circle', { cx: 0, cy: 4.4, r: 4.6, fill: `url(#${uid}bell)`, stroke: '#9c6a0e', 'stroke-width': 0.5 }, bellG)
+  el('path', { d: 'M-3.4,3.6 L3.4,3.6 M0,5.6 L0,8.6', stroke: '#86580a', 'stroke-width': 0.8, 'stroke-linecap': 'round' }, bellG)
+  el('circle', { cx: 0, cy: 6, r: 1, fill: '#6b4507' }, bellG)
+  el('circle', { cx: -1.6, cy: 2.6, r: 1, fill: '#fff', opacity: '0.85' }, bellG)
+  // chubby head with fluffy cheeks
+  el('path', {
+    d: 'M0,-25 C17,-25 29.5,-15 30.5,0 C31,6 33.5,9 33,12.5 L29.6,13.4 L32,16.6 L27.8,17.6 C23,24.5 12,28 0,28 C-12,28 -23,24.5 -27.8,17.6 L-32,16.6 L-29.6,13.4 L-33,12.5 C-33.5,9 -31,6 -30.5,0 C-29.5,-15 -17,-25 0,-25 Z',
+    fill: C_HEAD,
+  }, headG)
+  el('ellipse', { cx: -6, cy: -15, rx: 15, ry: 7, fill: `url(#${uid}sheen)` }, headG)
+  // forehead heart mark
+  el('path', { d: 'M0,-9.6 C-3,-11.8 -5.6,-14 -5,-16.8 C-4.4,-19.2 -1.4,-19.2 0,-16.8 C1.4,-19.2 4.4,-19.2 5,-16.8 C5.6,-14 3,-11.8 0,-9.6 Z', fill: '#faf5f2' }, headG)
 
   const faceG = el('g', null, headG)
-  const blushL = el('ellipse', { cx: -14.5, cy: 8.5, rx: 4.2, ry: 2.4, fill: '#ff8fab', opacity: 0 }, faceG)
-  const blushR = el('ellipse', { cx: 14.5, cy: 8.5, rx: 4.2, ry: 2.4, fill: '#ff8fab', opacity: 0 }, faceG)
+  el('ellipse', { cx: 0, cy: 13, rx: 11, ry: 7.5, fill: `url(#${uid}muzzle)` }, faceG)
+  const blushL = el('ellipse', { cx: -19.5, cy: 11.5, rx: 6, ry: 3.6, fill: `url(#${uid}blush)`, opacity: 0.35 }, faceG)
+  const blushR = el('ellipse', { cx: 19.5, cy: 11.5, rx: 6, ry: 3.6, fill: `url(#${uid}blush)`, opacity: 0.35 }, faceG)
   const eyes = [-1, 1].map((side) => {
-    const g = el('g', { transform: `translate(${side * 9.6},-1.5)` }, faceG)
+    const g = el('g', { transform: `translate(${side * 12.5},1.5)` }, faceG)
     const open = el('g', null, g)
-    el('ellipse', { rx: 7.2, ry: 7.6, fill: `url(#${uid}eye)` }, open)
-    const pupil = el('ellipse', { rx: 4.4, ry: 5, fill: '#1c120c' }, open)
-    const hl = el('circle', { cx: -2.4, cy: -2.9, r: 2.3, fill: '#fff' }, open)
-    const hl2 = el('circle', { cx: 2.4, cy: 2.6, r: 1, fill: '#fff', opacity: '0.75' }, open)
-    const closed = el('path', { fill: 'none', stroke: '#bdb8ca', 'stroke-width': 1.8, 'stroke-linecap': 'round' }, g)
+    el('ellipse', { rx: 9.6, ry: 10.4, fill: '#120d14' }, open) // dark rim
+    el('ellipse', { rx: 8.8, ry: 9.6, fill: `url(#${uid}iris)` }, open)
+    const pupil = el('ellipse', { rx: 5.8, ry: 6.2, fill: `url(#${uid}pupil)` }, open)
+    el('ellipse', { cx: 0, cy: 5.6, rx: 5, ry: 2.2, fill: '#ffe98a', opacity: '0.35' }, open)
+    const hl = el('ellipse', { cx: -3.2, cy: -4, rx: 3.3, ry: 3, fill: '#fff' }, open)
+    const hl2 = el('circle', { cx: 3.6, cy: 3.6, r: 1.5, fill: '#fff', opacity: '0.9' }, open)
+    el('circle', { cx: -4.6, cy: 2.4, r: 0.8, fill: '#fff', opacity: '0.7' }, open)
+    const closed = el('path', { fill: 'none', stroke: '#d9d2e2', 'stroke-width': 2, 'stroke-linecap': 'round' }, g)
     return { open, pupil, hl, hl2, closed, side }
   })
-  el('path', { d: 'M-2.7,5.1 Q0,4.3 2.7,5.1 Q1.3,7.4 0,7.9 Q-1.3,7.4 -2.7,5.1 Z', fill: '#ea8d9e' }, faceG)
-  const mouthOpen = el('ellipse', { cx: 0, cy: 12, rx: 3.6, ry: 0, fill: '#a8404f' }, faceG)
-  const tongue = el('ellipse', { cx: 0, cy: 12.8, rx: 2.6, ry: 0, fill: '#ff96a8' }, faceG)
-  el('path', { d: 'M0,7.9 L0,9.5 M-4.4,9.2 Q-2.2,11.8 0,9.5 Q2.2,11.8 4.4,9.2', fill: 'none', stroke: '#7d7987', 'stroke-width': 1, 'stroke-linecap': 'round' }, faceG)
+  el('path', { d: 'M-2.9,8.6 Q0,7.5 2.9,8.6 Q1.5,11.2 0,11.7 Q-1.5,11.2 -2.9,8.6 Z', fill: '#f2909e' }, faceG)
+  el('ellipse', { cx: -0.9, cy: 8.8, rx: 0.9, ry: 0.5, fill: '#fff', opacity: '0.7' }, faceG)
+  const mouthOpen = el('ellipse', { cx: 0, cy: 15, rx: 3.8, ry: 0, fill: '#9e3a4c' }, faceG)
+  const tongue = el('ellipse', { cx: 0, cy: 15.8, rx: 2.8, ry: 0, fill: '#ff9aab' }, faceG)
+  el('path', { d: 'M0,11.7 L0,13 M-4.2,12.6 Q-2.1,15.4 0,13 Q2.1,15.4 4.2,12.6', fill: 'none', stroke: '#8d8196', 'stroke-width': 1.05, 'stroke-linecap': 'round' }, faceG)
   el('path', {
-    d: 'M-9,7.5 L-27,4.5 M-9,9.3 L-28,10 M-9,11 L-26,15 M9,7.5 L27,4.5 M9,9.3 L28,10 M9,11 L26,15',
-    stroke: '#aba7b6', 'stroke-width': 0.7, opacity: '0.55', 'stroke-linecap': 'round',
+    d: 'M-12,11 Q-24,8.5 -38,8 M-12,13 Q-25,13 -39,15 M-12,15 Q-23,17 -35,21.5 M12,11 Q24,8.5 38,8 M12,13 Q25,13 39,15 M12,15 Q23,17 35,21.5',
+    fill: 'none', stroke: '#ece6f2', 'stroke-width': 0.6, opacity: '0.7', 'stroke-linecap': 'round',
   }, faceG)
 
-  const collarG = el('g', null, headG)
-  el('path', { d: 'M-14.5,13.5 Q0,22.5 14.5,13.5', fill: 'none', stroke: '#e0505c', 'stroke-width': 3.6, 'stroke-linecap': 'round' }, collarG)
-  el('path', { d: 'M-13,13.2 Q0,21 13,13.2', fill: 'none', stroke: '#f37e86', 'stroke-width': 0.9, 'stroke-linecap': 'round', opacity: '0.8' }, collarG)
-  const bellG = el('g', null, collarG)
-  el('circle', { cx: 0, cy: 3.6, r: 3.6, fill: `url(#${uid}bell)`, stroke: '#a26e10', 'stroke-width': 0.5 }, bellG)
-  el('path', { d: 'M-2.6,3 L2.6,3 M0,4.6 L0,6.9', stroke: '#8a5c0c', 'stroke-width': 0.7, 'stroke-linecap': 'round' }, bellG)
-  el('circle', { cx: 0, cy: 5, r: 0.8, fill: '#6e4708' }, bellG)
   let bell = { a: 0, v: 0, prevRot: 0 }
 
   // near front leg on top of head (so the paw can wash the face)
-  const legFN = el('path', { fill: 'none', stroke: C_BODY, 'stroke-width': 10.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, jitterG)
+  const legFN = el('path', legAttr(C_BODY, 12), jitterG)
   const pawFNg = el('g', null, jitterG)
-  el('ellipse', { rx: 6.8, ry: 4.2, fill: C_BODY }, pawFNg)
-  const beans = el('g', { fill: '#ef98aa', opacity: 0 }, pawFNg)
-  el('ellipse', { cx: 0, cy: 1, rx: 2.6, ry: 1.9 }, beans)
-  el('circle', { cx: -3.3, cy: -2, r: 1.1 }, beans)
-  el('circle', { cx: 0, cy: -3, r: 1.1 }, beans)
-  el('circle', { cx: 3.3, cy: -2, r: 1.1 }, beans)
+  el('ellipse', { rx: 7, ry: 4.8, fill: C_BODY }, pawFNg)
+  el('path', { d: 'M-2.2,-1.2 L-2.2,1.8 M1.6,-1.2 L1.6,1.8', stroke: '#141017', 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: '0.7' }, pawFNg)
+  const beans = el('g', { fill: '#f59fb0', opacity: 0 }, pawFNg)
+  el('ellipse', { cx: 0, cy: 1.4, rx: 2.9, ry: 2.2 }, beans)
+  el('circle', { cx: -3.6, cy: -2, r: 1.25 }, beans)
+  el('circle', { cx: 0, cy: -3.2, r: 1.25 }, beans)
+  el('circle', { cx: 3.6, cy: -2, r: 1.25 }, beans)
 
   const tailFrontL = el('g', null, jitterG)
-  const tailG = el('g', { filter: FUR, fill: C_BODY, stroke: C_BODY, 'stroke-width': 1, 'stroke-linejoin': 'round' }, tailBackL)
+  const tailG = el('g', { fill: C_BODY, stroke: C_BODY, 'stroke-width': 1, 'stroke-linejoin': 'round' }, tailBackL)
   const tailPath = el('path', null, tailG)
   const tailTipC = el('circle', null, tailG)
   let tailInFront = false
@@ -235,7 +258,7 @@ export function createBlackCat(container, options = {}) {
 
   const fxG = el('g', { 'pointer-events': 'none' }, svg)
   const bubbleG = el('g', { opacity: 0 }, svg)
-  const bubbleRect = el('rect', { rx: 9, ry: 9, fill: '#fff', stroke: '#2a2833', 'stroke-width': 1.2 }, bubbleG)
+  const bubbleRect = el('rect', { rx: 10, ry: 10, fill: '#fff', stroke: '#2a2833', 'stroke-width': 1.2 }, bubbleG)
   const bubbleText = el('text', {
     'font-size': 12, 'font-weight': 700, fill: '#2a2833', 'text-anchor': 'middle', 'dominant-baseline': 'central',
     'font-family': "'Pretendard Variable','Pretendard',-apple-system,sans-serif",
@@ -365,8 +388,8 @@ export function createBlackCat(container, options = {}) {
       case 'groom': {
         const chest = Math.floor(t / 2.8) % 2 === 1
         Object.assign(tgt, chest
-          ? { headX: 16, headY: -62, headRot: 34, stateTurn: 0.6 }
-          : { headX: -3, headY: -59, headRot: -32, stateTurn: -1 })
+          ? { headX: 11, headY: -50, headRot: 30, stateTurn: 0.6 }
+          : { headX: -3, headY: -48, headRot: -30, stateTurn: -1 })
         Object.assign(tgt, { eyeOpen: 0.04, tongue: 1, happy: 0.3, lookW: 0, earBack: 0.12 })
         break
       }
@@ -378,7 +401,7 @@ export function createBlackCat(container, options = {}) {
         break
       case 'wake': // yawn while lying
         Object.assign(tgt, t > 0.3 && t < 1.6
-          ? { eyeOpen: 0, mouth: 1, earBack: 0.3, lookW: 0, headRot: -10, headY: -50 }
+          ? { eyeOpen: 0, mouth: 1, earBack: 0.3, lookW: 0, headRot: -10, headY: -41 }
           : { eyeOpen: 0.6 })
         break
       case 'sleep':
@@ -391,7 +414,7 @@ export function createBlackCat(container, options = {}) {
         Object.assign(tgt, { eyeOpen: 0, happy: 1, earBack: 0.32, blush: 1, purr: 1, lookW: 0.35, breathHz: 0.42 })
         if (b === 'stand') Object.assign(tgt, { tailBase: 1.5, tailCurl: -0.012, tailTip: 0.34, tailSway: 0.05, tailSpeed: 2.6 })
         if (b === 'sit') Object.assign(tgt, { headRot: 0, tailSway: 0.07, tailSpeed: 1.2 })
-        if (b === 'lie') Object.assign(tgt, { headRot: 8, headY: -42 })
+        if (b === 'lie') Object.assign(tgt, { headRot: 8, headY: -35 })
         break
       }
     }
@@ -473,7 +496,7 @@ export function createBlackCat(container, options = {}) {
   }
   function burst(n) {
     const h = headWorld()
-    for (let i = 0; i < n; i++) spawnHeart(h.x + rand(-14, 14) * S, h.y - 22 * S, true)
+    for (let i = 0; i < n; i++) spawnHeart(h.x + rand(-14, 14) * S, h.y - 34 * S, true)
   }
   function updateParticles(dt) {
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -519,20 +542,20 @@ export function createBlackCat(container, options = {}) {
   }
 
   function gait(p) {
-    const beta = 0.6, stride = 24, lift = 7
+    const beta = 0.6, stride = 17, lift = 5.5
     if (p < beta) return { dx: stride / 2 - stride * (p / beta), dy: 0 }
     const q = (p - beta) / (1 - beta)
     return { dx: -stride / 2 + stride * smooth(q), dy: -lift * Math.sin(Math.PI * q) }
   }
 
   function buildTail(Q, rootX, rootY) {
-    const N = 12, seg = 5.6
+    const N = 12, seg = 4.7
     let x = rootX, y = rootY
     const pts = [[x, y]]
     for (let i = 0; i < N; i++) {
       const u = i / N
       let a = Q.tailBase + Q.tailCurl * i
-      if (i >= N - 4) a += Q.tailTip * (i - (N - 5))
+      if (i >= N - 6) a += Q.tailTip * 0.55 * (i - (N - 7))
       a += Q.tailSway * Math.sin(tailPhase - i * 0.42) * (0.35 + u * 1.3)
       x += -Math.cos(a) * seg
       y += -Math.sin(a) * seg
@@ -545,7 +568,7 @@ export function createBlackCat(container, options = {}) {
       let tx = p1[0] - p0[0], ty = p1[1] - p0[1]
       const tl = Math.hypot(tx, ty) || 1
       tx /= tl; ty /= tl
-      const w = lerp(5.2, 4.2, Math.sin(Math.PI * (i / N) * 0.8)) * (i === N ? 0.85 : 1)
+      const w = 3.6 + 1.1 * Math.sin(Math.PI * (0.1 + i / N * 0.8))
       L.push([pts[i][0] - ty * w, pts[i][1] + tx * w])
       R.push([pts[i][0] + ty * w, pts[i][1] - tx * w])
     }
@@ -583,7 +606,7 @@ export function createBlackCat(container, options = {}) {
       pet.heartT -= dt
       if (pet.heartT <= 0) {
         const h = headWorld()
-        spawnHeart(h.x + rand(-12, 12) * S, h.y - 20 * S)
+        spawnHeart(h.x + rand(-12, 12) * S, h.y - 32 * S)
         pet.heartT = rand(0.45, 0.95)
       }
       if (pet.energy < 0.05 && time - pet.lastPet > 1.6) nextState()
@@ -621,7 +644,7 @@ export function createBlackCat(container, options = {}) {
       const dir = Math.sign(dx) || 1
       cat.faceT = dir
       const aligned = cat.face * dir > 0.75
-      const want = aligned ? dir * Math.min(32, Math.abs(dx) / S * 1.5 + 2) : 0
+      const want = aligned ? dir * Math.min(26, Math.abs(dx) / S * 1.5 + 2) : 0
       cat.vel += (want - cat.vel) * (1 - Math.exp(-dt * 3.2))
       if (Math.abs(dx) < 2 * S && Math.abs(cat.vel) < 6) {
         cat.vel = 0
@@ -655,8 +678,8 @@ export function createBlackCat(container, options = {}) {
     cat.x += cat.vel * S * dt
     cat.x = clamp(cat.x, 50 * S, Math.max(50 * S, W - 50 * S))
     const sp = Math.abs(cat.vel)
-    cat.walkW = clamp(sp / 16, 0, 1)
-    cat.phase = (cat.phase + sp * 0.6 / 24 * dt) % 1
+    cat.walkW = clamp(sp / 13, 0, 1)
+    cat.phase = (cat.phase + sp * 0.6 / 17 * dt) % 1
     tailPhase += dt * P.tailSpeed * TAU * (1 + cat.walkW * 0.3)
 
     const Q = { ...P }
@@ -766,7 +789,7 @@ export function createBlackCat(container, options = {}) {
     jitterG.setAttribute('transform', purr > 0.02 ? `translate(0,${f2(purr * 0.4 * Math.sin(time * 72))})` : '')
 
     // shadow
-    const minX = Math.min(Q.hipX - Q.rHip, Q.headX - 20), maxX = Math.max(Q.chestX + Q.rChest, Q.headX + 20, Q.fNx)
+    const minX = Math.min(Q.hipX - Q.rHip, Q.headX - 26), maxX = Math.max(Q.chestX + Q.rChest, Q.headX + 26, Q.fNx)
     const sw = toWorld((minX + maxX) / 2, 0)
     shadow.setAttribute('cx', f1(sw.x))
     shadow.setAttribute('cy', f1(groundY() + 0.5 * s))
@@ -787,8 +810,8 @@ export function createBlackCat(container, options = {}) {
         [cx - nx * Q.rChest, cy - ny * Q.rChest], [hx - nx * Q.rHip, hy - ny * Q.rHip],
       ].map((p) => f1(p[0]) + ',' + f1(p[1])).join(' '))
       const ang = Math.atan2(dy, dx) * 180 / Math.PI
-      sheen.setAttribute('transform', `translate(${f1((hx + cx) / 2 - nx * 6)},${f1((hy + cy) / 2 - ny * 6 - 6)}) rotate(${f1(ang)})`)
-      sheen.setAttribute('rx', f1(d / 2 + 6)); sheen.setAttribute('ry', 7)
+      sheen.setAttribute('transform', `translate(${f1((hx + cx) / 2 - nx * 6)},${f1((hy + cy) / 2 - ny * 4 - 3)}) rotate(${f1(ang)})`)
+      sheen.setAttribute('rx', f1(d / 2 + 6)); sheen.setAttribute('ry', 6)
     }
     neck.setAttribute('x1', f1(cx)); neck.setAttribute('y1', f1(cy))
     neck.setAttribute('x2', f1(Q.headX)); neck.setAttribute('y2', f1(Q.headY + 6))
@@ -809,12 +832,12 @@ export function createBlackCat(container, options = {}) {
       const per = 2.3, u = (time % per) / per
       let lx, ly
       if (u < 0.38) { // lick paw
-        lx = 6; ly = 14 + Math.sin(u / 0.38 * TAU * 2) * 1.5
+        lx = 7; ly = 17 + Math.sin(u / 0.38 * TAU * 2) * 1.5
         Q.headRot += 7 + 3 * Math.sin(u / 0.38 * TAU * 2)
         Q.tongue = Math.max(Q.tongue, 0.8 + 0.2 * Math.sin(u / 0.38 * TAU * 4))
       } else { // wipe over face & ear
         const v = (u - 0.38) / 0.62, th = Math.PI / 2 - TAU * smooth(v)
-        lx = 9 + 6 * Math.cos(th); ly = -1 + 14 * Math.sin(th)
+        lx = 13 + 7 * Math.cos(th); ly = 1 + 16 * Math.sin(th)
         Q.headRot += -9 * Math.sin(Math.PI * v)
       }
       const r = Q.headRot * Math.PI / 180
@@ -824,10 +847,10 @@ export function createBlackCat(container, options = {}) {
       fnx = lerp(fnx, wx, P.washW); fny = lerp(fny, wy, P.washW)
     }
     const shY = cy + Q.shoulderDy
-    const kFN = ik(cx + 2, shY, fnx, fny - 4, 21, 21, -0.3, 1)
-    const kFF = ik(cx - 4, shY, Q.fFx + gFF.dx, Q.fFy + gFF.dy - 4, 21, 21, -0.3, 1)
-    const kHN = ik(hx + 2, hy + 4, Q.hNx + gHN.dx, Q.hNy + gHN.dy - 4, 21, 21.5, hpx, hpy)
-    const kHF = ik(hx - 4, hy + 4, Q.hFx + gHF.dx, Q.hFy + gHF.dy - 4, 21, 21.5, hpx, hpy)
+    const kFN = ik(cx + 2, shY, fnx, fny - 4, LF, LF, -0.3, 1)
+    const kFF = ik(cx - 4, shY, Q.fFx + gFF.dx, Q.fFy + gFF.dy - 4, LF, LF, -0.3, 1)
+    const kHN = ik(hx + 2, hy + 4, Q.hNx + gHN.dx, Q.hNy + gHN.dy - 4, LH, LH + 0.5, hpx, hpy)
+    const kHF = ik(hx - 4, hy + 4, Q.hFx + gHF.dx, Q.hFy + gHF.dy - 4, LH, LH + 0.5, hpx, hpy)
     legFN.setAttribute('d', legPath(cx + 2, shY, kFN))
     legFF.setAttribute('d', legPath(cx - 4, shY, kFF))
     legHN.setAttribute('d', legPath(hx + 2, hy + 4, kHN))
@@ -858,43 +881,43 @@ export function createBlackCat(container, options = {}) {
       bell.v += (w * w * (0 - bell.a) - 2 * w * 0.25 * bell.v) * dt + kick * 8
       bell.a += bell.v * dt
       const ang = bell.a + cat.walkW * 14 * Math.sin(cat.phase * TAU * 2) + P.purr * 4 * Math.sin(time * 40)
-      bellG.setAttribute('transform', `translate(2,${f1(18.4)}) rotate(${f1(clamp(ang, -45, 45))})`)
+      bellG.setAttribute('transform', `translate(2,28.5) rotate(${f1(clamp(ang, -45, 45))})`)
     }
     faceG.setAttribute('transform', `translate(${f2(turn * 4)},${f2(pitch * 1.6)})`)
     const earBase = P.earBack * 28
-    earL.setAttribute('transform', `translate(${f2(turn * 1.5)},0) rotate(${f1(-(earBase + ears.l * 0.1 + (meow.t >= 0 ? -6 : 0)))} -12 -14)`)
-    earR.setAttribute('transform', `translate(${f2(-turn * 1.5)},0) rotate(${f1(-(earBase + ears.r * 0.1 + (meow.t >= 0 ? -6 : 0)))} -12 -14)`)
+    earL.setAttribute('transform', `translate(${f2(turn * 1.5)},0) rotate(${f1(-(earBase + ears.l * 0.1 + (meow.t >= 0 ? -6 : 0)))} -16 -19)`)
+    earR.setAttribute('transform', `translate(${f2(-turn * 1.5)},0) rotate(${f1(-(earBase + ears.r * 0.1 + (meow.t >= 0 ? -6 : 0)))} -16 -19)`)
     const ob = smooth(clamp((eyeOpen - 0.08) / 0.2, 0, 1))
     const curve = lerp(3.8, -4.2, clamp(P.happy, 0, 1))
     for (const e of eyes) {
       e.open.setAttribute('transform', `scale(1,${f2(Math.max(0.06, eyeOpen))})`)
       e.open.setAttribute('opacity', f2(ob))
       e.closed.setAttribute('opacity', f2(1 - ob))
-      e.closed.setAttribute('d', `M-5.8,0 Q0,${f1(curve)} 5.8,0`)
-      e.pupil.setAttribute('cx', f2(look.px))
-      e.pupil.setAttribute('cy', f2(look.py))
-      e.pupil.setAttribute('rx', f2(look.pupil))
-      e.pupil.setAttribute('ry', f2(look.pupil * 1.12 + 0.6))
-      e.hl.setAttribute('cx', f2(-2 + look.px * 0.3))
+      e.closed.setAttribute('d', `M-7,1 Q0,${f1(curve * 1.25 + 1)} 7,1`)
+      e.pupil.setAttribute('cx', f2(look.px * 1.15))
+      e.pupil.setAttribute('cy', f2(look.py * 1.15))
+      e.pupil.setAttribute('rx', f2(look.pupil * 1.45))
+      e.pupil.setAttribute('ry', f2(look.pupil * 1.55))
+      e.hl.setAttribute('cx', f2(-3.2 + look.px * 0.25))
     }
-    blushL.setAttribute('opacity', f2(P.blush * 0.6))
-    blushR.setAttribute('opacity', f2(P.blush * 0.6))
+    blushL.setAttribute('opacity', f2(0.35 + P.blush * 0.65))
+    blushR.setAttribute('opacity', f2(0.35 + P.blush * 0.65))
     mouthOpen.setAttribute('ry', f2(Math.max(0, mouthV) * 4.2))
-    mouthOpen.setAttribute('cy', f2(11 + mouthV * 1.5))
+    mouthOpen.setAttribute('cy', f2(14 + mouthV * 1.5))
     const tg = Math.max(0, Q.tongue)
     tongue.setAttribute('ry', f2(tg * 3.2 + Math.max(0, mouthV) * 1.6))
-    tongue.setAttribute('cy', f2(11.5 + tg * 2.2 + mouthV * 2.6))
+    tongue.setAttribute('cy', f2(14.5 + tg * 2.2 + mouthV * 2.6))
 
     // hit areas
     hitBody.setAttribute('cx', f1((hx + cx) / 2)); hitBody.setAttribute('cy', f1((hy + cy) / 2))
-    hitBody.setAttribute('r', f1(Math.hypot(cx - hx, cy - hy) / 2 + 20))
+    hitBody.setAttribute('r', f1(Math.hypot(cx - hx, cy - hy) / 2 + 17))
     hitHead.setAttribute('cx', f1(Q.headX)); hitHead.setAttribute('cy', f1(Q.headY - 4))
-    hitHead.setAttribute('r', 31)
+    hitHead.setAttribute('r', 34)
 
     // sleep zzz
     if (n === 'sleep') {
       zzzT -= dt
-      if (zzzT <= 0) { const h = headWorld(); spawnZ(h.x + 14 * s * Math.sign(cat.face), h.y - 22 * s); zzzT = 1.7 }
+      if (zzzT <= 0) { const h = headWorld(); spawnZ(h.x + 18 * s * Math.sign(cat.face), h.y - 30 * s); zzzT = 1.7 }
     }
     updateParticles(dt)
 
@@ -908,7 +931,7 @@ export function createBlackCat(container, options = {}) {
       bubbleRect.setAttribute('x', -w / 2); bubbleRect.setAttribute('y', -11)
       bubbleRect.setAttribute('width', w); bubbleRect.setAttribute('height', 22)
       const bx = clamp(h.x + 26 * s * Math.sign(cat.face), w / 2 + 2, W - w / 2 - 2)
-      bubbleG.setAttribute('transform', `translate(${f1(bx)},${f1(h.y - 40 * s - u * 6)}) scale(${f2(Math.min(1, 0.6 + u * 4))})`)
+      bubbleG.setAttribute('transform', `translate(${f1(bx)},${f1(h.y - 50 * s - u * 6)}) scale(${f2(Math.min(1, 0.6 + u * 4))})`)
       bubbleG.setAttribute('opacity', f2(a))
     } else bubbleG.setAttribute('opacity', 0)
   }
