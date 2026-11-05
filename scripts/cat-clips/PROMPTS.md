@@ -12,6 +12,7 @@
 **허브(기준) 이미지**
 - 🐈‍⬛ 앉은 자세 = `hubs/kling_start_frame.png`
 - 💤 자는 자세 = `hubs/kling_sleep_frame.png`
+- 🫥 숨은 상태(빈 화면) = `hubs/kling_empty_frame.png` — 화면 아래 끝 = 사이트 푸터의 바닥선
 
 **모든 프롬프트 뒤에 붙일 공통 문구**
 ```
@@ -63,6 +64,16 @@ camera movement, zoom, scene cut, background change, extra cats, human, hands, t
 | `sit_to_sleep` | 꾸벅꾸벅 졸다 잠들기 | 앉음 → 자는 자세 | The kitten gets sleepy, its eyes slowly close and its head nods, then it lies down, curls up and falls asleep with its head on its paws. |
 | `sleep_dream` | 꿈꾸기 | 자는 자세 → 자는 자세 | The kitten sleeps curled up, breathing slowly; its paw and whiskers twitch slightly as if dreaming, and one ear flicks. |
 | `sleep_wake_stretch` | 일어나 기지개 | 자는 자세 → 앉음 | The kitten wakes up, opens its eyes, stretches its front paws forward with a little yawn, then sits up neatly. |
+
+## 5. 바닥 밑으로 숨기 · 눈치 보며 올라오기
+
+화면 **아래쪽 끝이 바닥**이에요. 사이트에서는 고양이가 푸터 바닥선 아래로 쏙 들어갔다가 다시 나오는 것처럼 보입니다.
+
+| 파일명 | 상황 | 시작 → 끝 | 프롬프트 |
+|---|---|---|---|
+| `sit_hide` | 바닥 밑으로 쏙 숨기 | 앉음 → 빈 화면 | The kitten suddenly crouches low, flattens its ears, and quickly slides straight down below the bottom edge of the frame until it is completely hidden, with only the empty background left. |
+| `hidden_peek_up` | 눈치 보며 조금씩 올라오기 | 빈 화면 → 앉음 | From below the bottom edge of the frame, the tips of the kitten's ears appear first, then its eyes peek up and nervously look left and right; it rises a little, pauses to check around cautiously, then slowly comes all the way up and sits in its usual pose. |
+| `hidden_peek_duck` | 빼꼼 봤다가 다시 숨기 | 빈 화면 → 빈 화면 | From below the bottom edge of the frame, only the kitten's ears and big eyes peek up, glance around nervously, then quickly duck back down out of sight, leaving the empty background. |
 
 ---
 
