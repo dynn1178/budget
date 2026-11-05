@@ -394,7 +394,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       pet.heartT -= dt
       if (pet.heartT <= 0) { spawnHeart(); pet.heartT = rand(0.45, 0.9) }
       // 앉아 있는 중이면 행복 클립으로 빠르게 전환 (짧은 크로스페이드)
-      if (cur && !pending && !fading && cur.def.kind !== 'pet' && cur.def.from === cur.def.to && from(cur.def.from, 'sleep').length === 0) {
+      if (cur && !pending && !fading && cur.def.kind !== 'pet' && cur.def.kind !== 'treat' && cur.def.from === cur.def.to && from(cur.def.from, 'sleep').length === 0) {
         const pets = from(cur.def.from, 'pet')
         const v = cur.video
         if (pets.length && v.duration - v.currentTime > 0.6) queue(pickWeighted(pets), 0.35)
@@ -471,6 +471,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       const treats = from(hub, 'treat')
       if (!treats.length) return false
       const t = pickWeighted(treats)
+      pet.energy = 0; pet.lastMove = -1e9 // 간식 먹는 동안 쓰다듬기 전환으로 끊기지 않게
       queue(t, t.fadeIn ?? 0.3)
       setTimeout(() => { spawnHeart(true); spawnHeart() }, 1800)
       return true
