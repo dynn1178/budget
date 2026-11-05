@@ -123,3 +123,27 @@ The kitten gets sleepy, its eyes slowly close and its head nods, then it lies do
    - 시작·끝 프레임이 기준 자세와 달라 보이면 `fadeIn`/`fadeOut: 0.35` 추가
 
 > 팁: 끝 프레임까지 같은 이미지를 넣어도 Kling이 마지막 0.3~0.5초에 "툭" 돌아오는 경우가 있어요. 그 부분은 제가 잘라내거나 부드럽게 이어 붙입니다.
+
+---
+
+## 🐾 [C6] 살포시 숨었다가 빼꼼 (M6 고양이 버전) ⭐
+
+화면 **아래쪽 끝 = 바닥선(담벼락)**. 고양이답게 소리 없이 천천히 가라앉고, 조심스럽게 스르륵 올라오는 느낌.
+- 시작 / 끝 프레임: 둘 다 `hubs/kling_start_frame.png` (🐈‍⬛ 앉은 자세)
+- 설정: 720p · Standard · 10초
+
+```
+In this exact order, with slow, soft, graceful cat movements: (1) the black kitten gently lowers itself and slowly, silently sinks straight down below the bottom edge of the frame, like melting out of sight, until it is completely hidden and only the empty background remains for a moment; (2) the tips of its pointy ears slowly rise into view from below the bottom edge; (3) its big yellow eyes peek over the edge, and it cautiously glances left, then right, ears swiveling as it checks around; (4) it softly sinks back down a little as if unsure, then peeks up again slowly a bit further to the side, eyes wide and curious; (5) feeling safe, it gracefully and slowly rises all the way up, one smooth fluid motion; (6) it settles in place, tucks its paws neatly, wraps its tail around and sits down in its calm sitting pose, finishing with a slow content blink. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten stays at the same horizontal position and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no visible wall, no floor, no hole, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+완전히 숨지 않고 웅크리기만 하면 → 두 영상으로 나눠 만들기:
+
+**[C6-a] 살포시 숨기** — 시작 🐈‍⬛ `kling_start_frame.png` → 끝 🟩 `kling_empty_frame.png`
+```
+With slow, soft, graceful cat movement, the black kitten gently lowers itself, ears softly flattening, and slowly, silently sinks straight down below the bottom edge of the frame, like melting out of sight, until it is completely hidden and only the empty green background remains. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten moves only straight down at the same horizontal position, facing left. Plain flat chroma-green background the whole time, no visible wall, no floor, no hole, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends with the empty background exactly like the last frame.
+```
+
+**[C6-b] 빼꼼 → 스르륵 올라와 앉기** — 시작 🟩 `kling_empty_frame.png` → 끝 🐈‍⬛ `kling_start_frame.png`
+```
+In this exact order, with slow, soft, graceful cat movements: (1) from below the bottom edge of the frame, the tips of the black kitten's pointy ears slowly rise into view; (2) its big yellow eyes peek over the edge and it cautiously glances left, then right, ears swiveling; (3) it softly sinks back down a little as if unsure, then peeks up again slowly a bit further to the side, eyes wide and curious; (4) feeling safe, it gracefully rises all the way up in one smooth fluid motion; (5) it settles in place, tucks its paws neatly, wraps its tail around and sits in its calm sitting pose facing left, finishing with a slow content blink. Static locked-off camera, no camera movement, no zoom, no cuts. Plain flat chroma-green background the whole time, no visible wall, no floor, no hole, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
