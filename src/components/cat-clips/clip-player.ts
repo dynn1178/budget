@@ -20,8 +20,10 @@ export interface ClipDef {
   src: string
   from: Hub
   to: Hub
-  /** idle: 평소 대기 / action: 그루밍 등 / pet: 쓰다듬기 반응 / sleep: 잠자는 루프 / transition: 허브 이동 */
-  kind: 'idle' | 'action' | 'pet' | 'sleep' | 'transition'
+  /** idle: 평소 대기 / action: 그루밍 등 / pet: 쓰다듬기 반응 / treat: 간식 반응(feed()로만) / sleep: 잠자는 루프 / transition: 허브 이동 */
+  kind: 'idle' | 'action' | 'pet' | 'treat' | 'sleep' | 'transition'
+  /** 화면에 보여줄 이름/설명 (선택) */
+  label?: string
   weight?: number
   /** 이 클립으로 들어올 때 / 나갈 때 크로스페이드(초). 허브 프레임과 자세가 많이 다른 클립에 사용 */
   fadeIn?: number
@@ -64,6 +66,8 @@ export interface ClipCatHandle {
   hide(): void
   /** 숨어 있으면 바로 빼꼼 올라오기 (데모용) */
   peek(): void
+  /** 간식 주기 — treat 클립 재생 (앉아 있을 때) */
+  feed(): boolean
   readonly clip: string
   destroy(): void
 }
@@ -208,7 +212,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     const awakeFor = (performance.now() - awakeSince) / 1000
     const options: ClipDef[] = []
     for (const c of from(hub)) {
-      if (c.kind === 'pet') continue
+      if (c.kind === 'pet' || c.kind === 'treat') continue
       if (c.kind === 'transition') {
         // 깨어 있은 지 오래될수록 잠들 확률 ↑
         if (awakeFor < 35) continue
@@ -460,6 +464,17 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       if (def) queue(def, 0.3)
     },
     hide() { if (hide.mode === 'normal') startHide() },
+    feed() {
+      if (hide.mode !== 'normal' || !cur) return false
+      const hub = cur.def.to
+      if (from(hub, 'sleep').length) return false // 자는 중엔 못 먹어요
+      const treats = from(hub, 'treat')
+      if (!treats.length) return false
+      const t = pickWeighted(treats)
+      queue(t, t.fadeIn ?? 0.3)
+      setTimeout(() => { spawnHeart(true); spawnHeart() }, 1800)
+      return true
+    },
     peek() { if (hide.mode === 'hidden') hide.hiddenLeft = 0 },
     get clip() { return hide.mode === 'normal' ? (cur?.def.id ?? '') : hide.mode },
     destroy() {
