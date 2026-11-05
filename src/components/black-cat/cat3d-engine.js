@@ -155,8 +155,7 @@ export function createBlackCat3D(container, options = {}) {
   const M = {
     fur: new THREE.MeshPhysicalMaterial(furParams),
     furLight: new THREE.MeshPhysicalMaterial({ ...furParams, color: 0x2d2a2f }),
-    earIn: new THREE.MeshPhysicalMaterial({ color: 0xd85a68, roughness: 0.6, sheen: 0.4, sheenColor: 0xffc4c4 }),
-    nose: new THREE.MeshPhysicalMaterial({ color: 0xf08c9b, roughness: 0.28, clearcoat: 0.6 }),
+    nose: new THREE.MeshPhysicalMaterial({ color: 0xe6857c, roughness: 0.28, clearcoat: 0.6 }),
     mouth: new THREE.MeshStandardMaterial({ color: 0x0e090c, roughness: 0.6 }),
     mouthIn: new THREE.MeshStandardMaterial({ color: 0x6a2233, roughness: 0.5 }),
     tongue: new THREE.MeshPhysicalMaterial({ color: 0xff97a9, roughness: 0.3, clearcoat: 0.4 }),
@@ -206,27 +205,43 @@ export function createBlackCat3D(container, options = {}) {
   let irisDrawn = -1
   function drawIris(pupil) {
     const c = irisCanvas.getContext('2d')
-    c.fillStyle = '#4a3206'; c.fillRect(0, 0, 256, 256)
-    const R = 123
-    let g = c.createRadialGradient(128, 150, 6, 128, 128, R)
-    g.addColorStop(0, '#fff07a'); g.addColorStop(0.5, '#f8d43a'); g.addColorStop(0.85, '#eeb51e'); g.addColorStop(1, '#a8700a')
-    c.fillStyle = g; c.beginPath(); c.arc(128, 128, R, 0, TAU); c.fill()
-    c.save(); c.globalAlpha = 0.18; c.strokeStyle = '#fff7c8'; c.lineWidth = 1.2
-    for (let i = 0; i < 70; i++) {
-      const a = (i / 70) * TAU + Math.sin(i * 7.3) * 0.05
-      c.beginPath(); c.moveTo(128 + Math.cos(a) * 30, 128 + Math.sin(a) * 30); c.lineTo(128 + Math.cos(a) * (R - 8), 128 + Math.sin(a) * (R - 8)); c.stroke()
+    const C = 128, R = 122
+    c.fillStyle = '#2a1a05'; c.fillRect(0, 0, 256, 256)
+    // warm yellow iris, paler low-centre, deeper amber toward the rim
+    let g = c.createRadialGradient(C, C + 30, 8, C, C, R)
+    g.addColorStop(0, '#fae27a'); g.addColorStop(0.45, '#f6d03e'); g.addColorStop(0.85, '#f0c030'); g.addColorStop(0.96, '#d9a020'); g.addColorStop(1, '#7a5008')
+    c.fillStyle = g; c.beginPath(); c.arc(C, C, R, 0, TAU); c.fill()
+    // fine iris fibres
+    c.save(); c.beginPath(); c.arc(C, C, R - 6, 0, TAU); c.clip()
+    for (let i = 0; i < 140; i++) {
+      const an = (i / 140) * TAU + Math.sin(i * 12.9898) * 0.03
+      const r0 = 40 + (i % 5) * 4, r1 = R - 10 - (i % 7) * 3
+      c.strokeStyle = i % 3 ? 'rgba(255,248,200,0.10)' : 'rgba(150,90,10,0.10)'
+      c.lineWidth = i % 3 ? 1.1 : 1.6
+      c.beginPath(); c.moveTo(C + Math.cos(an) * r0, C + Math.sin(an) * r0); c.lineTo(C + Math.cos(an) * r1, C + Math.sin(an) * r1); c.stroke()
     }
+    // soft shadow cast by the upper lid
+    g = c.createLinearGradient(0, C - R, 0, C - R * 0.15)
+    g.addColorStop(0, 'rgba(70,35,0,0.4)'); g.addColorStop(1, 'rgba(70,35,0,0)')
+    c.fillStyle = g; c.fillRect(0, 0, 256, 256)
     c.restore()
-    c.lineWidth = 3; c.strokeStyle = 'rgba(30,18,4,.75)'; c.beginPath(); c.arc(128, 128, R - 2, 0, TAU); c.stroke()
-    const pr = clamp(pupil * 17, 52, 96)
-    g = c.createRadialGradient(118, 116, 4, 128, 128, pr)
-    g.addColorStop(0, '#3a2412'); g.addColorStop(0.6, '#1a0f07'); g.addColorStop(1, '#090503')
-    c.fillStyle = g; c.beginPath(); c.arc(128, 128, pr, 0, TAU); c.fill()
+    // dark limbal ring
+    c.lineWidth = 5; c.strokeStyle = 'rgba(60,34,4,0.75)'; c.beginPath(); c.arc(C, C, R - 3, 0, TAU); c.stroke()
+    // pupil
+    const pr = clamp(pupil * 18.5, 56, 100)
+    g = c.createRadialGradient(C - 8, C - 10, 4, C, C, pr)
+    g.addColorStop(0, '#2e1c10'); g.addColorStop(0.6, '#160d07'); g.addColorStop(1, '#080402')
+    c.fillStyle = g; c.beginPath(); c.arc(C, C, pr, 0, TAU); c.fill()
+    // faint warm bounce light in the lower pupil
+    g = c.createRadialGradient(C + 10, C + pr * 0.55, 2, C + 10, C + pr * 0.55, pr * 0.6)
+    g.addColorStop(0, 'rgba(255,190,90,0.10)'); g.addColorStop(1, 'rgba(255,190,90,0)')
+    c.fillStyle = g; c.beginPath(); c.arc(C, C, pr, 0, TAU); c.fill()
     irisTex.needsUpdate = true
     irisDrawn = pupil
   }
   drawIris(3.9)
-  M.eye = new THREE.MeshPhysicalMaterial({ map: irisTex, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.6 })
+  M.eye = new THREE.MeshPhysicalMaterial({ map: irisTex, emissiveMap: irisTex, emissive: 0xffffff, emissiveIntensity: 0.5, roughness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.35, envMapIntensity: 0.08 })
+  M.lid = new THREE.MeshPhysicalMaterial({ ...furParams, color: 0x19161a })
 
   const radialTex = (inner, outer) => {
     const cv = document.createElement('canvas'); cv.width = cv.height = 64
@@ -360,7 +375,7 @@ export function createBlackCat3D(container, options = {}) {
   {
     const tg = new THREE.ConeGeometry(3.6, 6, 12)
     for (const sd of [-1, 1]) {
-      for (const [y, dy, dz, sc] of [[-1, -0.05, 0.05, 1], [-6, -0.35, 0.1, 1.2], [-11, -0.7, 0.2, 1]]) {
+      for (const [y, dy, dz, sc] of [[-10, -0.45, 0.1, 0.9], [-14, -0.75, 0.2, 0.75]]) {
         const { p } = surf(sd * 24, y, [headMesh])
         const d = new THREE.Vector3(sd, dy, dz).normalize()
         const m = new THREE.Mesh(tg, M.fur)
@@ -372,46 +387,90 @@ export function createBlackCat3D(container, options = {}) {
     }
   }
 
-  // ears
+  // ears: half-lathe "scoop" (concave toward the front) with a rounded tip
+  const earProfile = (R, H) => {
+    const pts = []
+    for (let i = 0; i <= 24; i++) {
+      const t = i / 24
+      const r = R * Math.pow(1 - t, 0.82) * (1 + 0.12 * Math.sin(Math.PI * t)) + (t > 0.9 ? 0 : 0)
+      pts.push(new THREE.Vector2(Math.max(r, 0.01), t * H))
+    }
+    pts.push(new THREE.Vector2(0.01, H + 0.6))
+    return pts
+  }
+  const earOuterGeo = new THREE.LatheGeometry(earProfile(15, 32), 36, Math.PI / 2 - 0.75, Math.PI + 1.5) // wraps forward → dark rim
+  const earInnerGeo = new THREE.LatheGeometry(earProfile(11.6, 25), 30, Math.PI / 2 - 0.25, Math.PI + 0.5)
+  {
+    // pink gradient: deeper in the centre/base, lighter toward the rim and tip
+    const p = earInnerGeo.attributes.position, col = []
+    const deep = new THREE.Color(0xd9625f), light = new THREE.Color(0xf6a892), tmp = new THREE.Color()
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
+      const r = Math.hypot(x, z) || 1
+      const centre = Math.max(0, -z / r) // 1 at the back of the scoop
+      const k = clamp(0.15 + 0.6 * (1 - centre) + 0.35 * (y / 24), 0, 1)
+      tmp.copy(deep).lerp(light, k)
+      col.push(tmp.r, tmp.g, tmp.b)
+    }
+    earInnerGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+  }
+  M.earIn = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.62, sheen: 0.5, sheenColor: 0xffd0d0, side: THREE.BackSide })
+  M.earOut = new THREE.MeshPhysicalMaterial({ ...furParams, side: THREE.DoubleSide })
+  M.earWisp = new THREE.MeshStandardMaterial({ color: 0xe9e2ea, roughness: 0.8, transparent: true, opacity: 0.55, depthWrite: false })
+  const wispGeo = new THREE.ConeGeometry(0.6, 9, 6)
   const ears3 = [-1, 1].map((sd) => {
     const pivot = new THREE.Group()
-    pivot.position.set(sd * 14, 12.5, -1.5)
-    const outer = new THREE.Mesh(new THREE.ConeGeometry(15.5, 31, 32), M.fur)
-    outer.scale.set(1, 1, 0.32); outer.position.y = 14
-    addShells(outer, outer.geometry, M.fur, 4, 1.1, 3)
-    const inner = new THREE.Mesh(new THREE.ConeGeometry(11.8, 25, 28), M.earIn)
-    inner.scale.set(1, 1, 0.16); inner.position.set(0, 12.6, 3.3)
-    pivot.add(outer, inner)
-    pivot.rotation.set(0.12, sd * -0.2, sd * -0.46)
+    pivot.position.set(sd * 14, 12, -1.5)
+    const shape = new THREE.Group()
+    shape.scale.set(1, 1, 0.62)
+    const outer = new THREE.Mesh(earOuterGeo, M.earOut)
+    addShells(outer, earOuterGeo, M.fur, 6, 1.6, 2.6)
+    const inner = new THREE.Mesh(earInnerGeo, M.earIn)
+    inner.position.set(0, 2.2, 0.6)
+    shape.add(outer, inner)
+    // light fur wisps inside, near the outer edge of the ear
+    for (const [x, y, rz, l] of [[sd * 7.5, 4, sd * 0.5, 1], [sd * 8.5, 7, sd * 0.65, 0.85], [sd * 6.5, 2.5, sd * 0.3, 0.9], [sd * 9, 10, sd * 0.8, 0.7]]) {
+      const w = new THREE.Mesh(wispGeo, M.earWisp)
+      w.position.set(x * 0.85, y + 4, 2.4)
+      w.rotation.set(0.25, 0, rz)
+      w.scale.set(1, l, 1)
+      shape.add(w)
+    }
+    pivot.add(shape)
+    pivot.rotation.set(0.12, sd * -0.22, sd * -0.44)
     headInner.add(pivot)
     return { pivot, sd, base: pivot.rotation.z }
   })
 
-  // eyes
-  const eyeGeo = new THREE.SphereGeometry(9.2, 40, 30)
+  // eyes: eyeball set under fur lids (lids close for blinks), flat catch-lights
+  const EYE_R = 8.2
+  const eyeGeo = new THREE.SphereGeometry(EYE_R, 40, 30)
   {
     const p = eyeGeo.attributes.position, uv = eyeGeo.attributes.uv
-    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 18.4 + 0.5, p.getY(i) / 18.4 + 0.5)
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / (EYE_R * 2) + 0.5, p.getY(i) / (EYE_R * 2) + 0.5)
   }
-  const closedGeo = new THREE.TorusGeometry(6.6, 0.8, 8, 28, Math.PI * 0.72)
-  const sparkGeo = new THREE.SphereGeometry(1, 12, 10)
+  const lidGeo = new THREE.SphereGeometry(EYE_R * 1.06, 40, 16, 0, TAU, 0, Math.PI / 2)
+  const closedGeo = new THREE.TorusGeometry(6.6, 0.75, 8, 28, Math.PI * 0.72)
+  const hlGeo = new THREE.CircleGeometry(1, 24)
   const eyes3 = [-1, 1].map((sd) => {
     const g = new THREE.Group()
-    place(g, sd * 12, -4, -2.9, [headMesh])
+    place(g, sd * 13.2, -4.5, -2.9, [headMesh])
     const socket = new THREE.Group()
-    socket.scale.set(1, 1.04, 0.42)
+    socket.scale.set(1, 1.02, 0.46)
     const ball = new THREE.Mesh(eyeGeo, M.eye)
-    socket.add(ball)
-    const s1 = new THREE.Mesh(sparkGeo, M.sparkle); s1.position.set(-3, 3.2, 8.8); s1.scale.setScalar(1.8)
-    const s2 = new THREE.Mesh(sparkGeo, M.sparkle); s2.position.set(3.2, -3.2, 8.8); s2.scale.setScalar(0.8)
-    const s3 = new THREE.Mesh(sparkGeo, M.sparkle); s3.position.set(-5, -2, 8.8); s3.scale.setScalar(0.5)
-    socket.add(s1, s2, s3)
+    const upper = new THREE.Mesh(lidGeo, M.lid)
+    const lower = new THREE.Mesh(lidGeo, M.lid)
+    lower.rotation.z = Math.PI // cap now covers y <= 0
+    const lowerPivot = new THREE.Group(); lowerPivot.add(lower)
+    const h1 = new THREE.Mesh(hlGeo, M.sparkle); h1.position.set(-2.1, 2.2, EYE_R * 1.03); h1.scale.setScalar(1.75)
+    const h2 = new THREE.Mesh(hlGeo, M.sparkle); h2.position.set(2.6, -2.6, EYE_R * 1.03); h2.scale.setScalar(0.55)
+    socket.add(ball, upper, lowerPivot, h1, h2)
     g.add(socket)
     const closed = new THREE.Mesh(closedGeo, M.closedEye)
-    closed.position.set(0, 0, 3.2)
+    closed.position.set(0, 0, 4.6)
     g.add(closed)
     headInner.add(g)
-    return { g, socket, ball, closed, sparks: [s1, s2, s3] }
+    return { g, socket, ball, upper, lowerPivot, closed, sparks: [h1, h2] }
   })
 
   // nose, mouth, tongue, whiskers, blush
@@ -1127,12 +1186,13 @@ export function createBlackCat3D(container, options = {}) {
     const ob = smooth(clamp((eyeOpen - 0.08) / 0.2, 0, 1))
     const happyArc = P.happy > 0.5
     for (const e of eyes3) {
-      e.socket.scale.y = 1.04 * Math.max(0.04, eyeOpen)
-      e.socket.visible = eyeOpen > 0.06
-      for (const sp of e.sparks) sp.visible = ob > 0.35
+      // upper lid rolls down over the eyeball; lower lid rises a little
+      e.upper.rotation.x = lerp(-1.02, Math.PI / 2 + 0.02, 1 - eyeOpen)
+      e.lowerPivot.rotation.x = lerp(1.22, 0.75, 1 - eyeOpen)
+      for (const sp of e.sparks) sp.visible = eyeOpen > 0.45
       e.ball.rotation.set(look.py * 0.15, look.px * sgn * 0.15, 0)
-      e.closed.visible = ob < 0.75
-      e.closed.material.opacity = 1 - ob
+      e.closed.visible = eyeOpen < 0.3
+      e.closed.material.opacity = clamp(1 - eyeOpen / 0.3, 0, 1)
       e.closed.rotation.z = happyArc ? Math.PI * 0.14 : -Math.PI * 0.86
       e.closed.position.y = happyArc ? -3.4 : 3.2
     }
