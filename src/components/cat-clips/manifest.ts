@@ -19,6 +19,8 @@ export const defaultCatManifest: CatManifest = {
   frame: { w: 420, h: 282 },
   hit: { cx: 0.53, cy: 0.54, rx: 0.27, ry: 0.42 },
   heartAt: { x: 0.52, y: 0.1 },
+  // 바닥 밑으로 숨기/빼꼼 (코드 연출): 귀 끝(프레임 위 8%)·눈(약 43%) 위치 기준
+  hide: { chance: 0.12, earsAt: 0.85, eyesAt: 0.5 },
   clips: [
     { id: 'sit_idle', src: C + 'sit_idle.mp4', from: 'sit', to: 'sit', kind: 'idle', weight: 3 },
     { id: 'sit_wash', src: C + 'sit_wash.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 1, fadeOut: 0.4 },

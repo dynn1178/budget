@@ -9,6 +9,8 @@
  * WebGL로 합성하므로 사파리 포함 모든 브라우저에서 투명 배경으로 보인다.
  *
  * 인터랙션: 고양이를 쓰다듬으면(마우스/손가락으로 문지르기) 하트가 나오고 'pet' 클립으로 전환.
+ * 숨바꼭질: 가끔 바닥선 아래로 쏙 숨었다가, 귀 끝 → 눈 순서로 눈치 보며 올라온다.
+ *          (영상 없이 코드로 연출 — 숨어 있는 자리에 마우스를 대면 빨리 빼꼼)
  */
 
 export type Hub = string
@@ -34,6 +36,17 @@ export interface CatManifest {
   hit?: { cx: number; cy: number; rx: number; ry: number }
   /** 하트가 나오는 위치 (프레임 기준 0~1) */
   heartAt?: { x: number; y: number }
+  /** 바닥 밑으로 숨기/빼꼼 연출 (영상 없이 코드로). 값은 '아래로 내려간 비율'(0 = 그대로, 1 = 완전히 숨음) */
+  hide?: {
+    /** 허브(앉은 자세)에서 클립이 끝날 때마다 숨을 확률 (기본 0.12) */
+    chance?: number
+    /** 귀 끝만 보이는 위치 (기본 0.85) */
+    earsAt?: number
+    /** 눈까지 보이는 위치 (기본 0.5) */
+    eyesAt?: number
+    /** 빼꼼할 때 번갈아 멈춰 보여줄 idle 클립의 시각(초) — 눈을 뜨고 여기저기 보는 프레임 */
+    glance?: number[]
+  }
   clips: ClipDef[]
 }
 
@@ -47,6 +60,10 @@ export interface ClipCatOptions {
 export interface ClipCatHandle {
   /** 강제로 특정 클립 재생 (데모용) */
   play(id: string): void
+  /** 바닥 밑으로 숨기 (데모용) */
+  hide(): void
+  /** 숨어 있으면 바로 빼꼼 올라오기 (데모용) */
+  peek(): void
   readonly clip: string
   destroy(): void
 }
@@ -56,10 +73,12 @@ type Slot = { def: ClipDef; video: HTMLVideoElement; tex: WebGLTexture | null }
 const VERT = `attribute vec2 p; varying vec2 v;
 void main(){ v = vec2((p.x + 1.0) * 0.5, 1.0 - (p.y + 1.0) * 0.5); gl_Position = vec4(p, 0.0, 1.0); }`
 const FRAG = `precision mediump float; varying vec2 v;
-uniform sampler2D ta; uniform sampler2D tb; uniform float mixv;
+uniform sampler2D ta; uniform sampler2D tb; uniform float mixv; uniform float off;
 vec4 samp(sampler2D t){
-  vec3 c = texture2D(t, vec2(v.x, v.y * 0.5)).rgb;
-  float a = texture2D(t, vec2(v.x, 0.5 + v.y * 0.5)).r;
+  float y = v.y - off;                     // 아래로 내려가며 바닥선(캔버스 아래 끝)에서 잘림
+  if (y < 0.0 || y > 1.0) return vec4(0.0);
+  vec3 c = texture2D(t, vec2(v.x, y * 0.5)).rgb;
+  float a = texture2D(t, vec2(v.x, 0.5 + y * 0.5)).r;
   a = smoothstep(0.06, 0.94, a);           // 압축 노이즈 정리
   return vec4(c * a, a);                   // premultiplied
 }
@@ -97,6 +116,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
   const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false })
   let prog: WebGLProgram | null = null
   let uMix: WebGLUniformLocation | null = null
+  let uOff: WebGLUniformLocation | null = null
   if (gl) {
     const sh = (type: number, src: string) => { const s = gl.createShader(type)!; gl.shaderSource(s, src); gl.compileShader(s); return s }
     prog = gl.createProgram()!
@@ -113,6 +133,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     gl.uniform1i(gl.getUniformLocation(prog, 'ta'), 0)
     gl.uniform1i(gl.getUniformLocation(prog, 'tb'), 1)
     uMix = gl.getUniformLocation(prog, 'mixv')
+    uOff = gl.getUniformLocation(prog, 'off')
     gl.clearColor(0, 0, 0, 0)
   }
   const newTex = () => {
@@ -164,6 +185,11 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
   }
 
   function chooseNext(hub: Hub): ClipDef {
+    // 숨어 있거나 빼꼼 중에는 두리번(idle)만
+    if (hide.mode !== 'normal') {
+      const idles = from(hub, 'idle')
+      if (idles.length) return pickWeighted(idles)
+    }
     const sleeps = from(hub, 'sleep')
     // 잠자는 중
     if (sleeps.length) {
@@ -216,6 +242,87 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     options.onClip?.(d)
   }
 
+  /* ------------------------------------------------ hide & peek (코드 연출) */
+  type Ease = 'in' | 'out' | 'inout' | 'back'
+  type Step = { to: number; dur: number; ease: Ease; hold?: number }
+  const ease = (e: Ease, x: number) => {
+    if (e === 'in') return x * x * x
+    if (e === 'out') return 1 - (1 - x) ** 3
+    if (e === 'inout') return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2
+    const c1 = 1.70158, c3 = c1 + 1
+    return 1 + c3 * (x - 1) ** 3 + c1 * (x - 1) ** 2
+  }
+  const hideCfg = { chance: 0.12, earsAt: 0.85, eyesAt: 0.5, glance: [0, 0.4, 0.8] as number[], ...(manifest.hide ?? {}) }
+  const hide = {
+    mode: 'normal' as 'normal' | 'hiding' | 'hidden' | 'peeking',
+    off: 0, from: 0, steps: [] as Step[], t: 0, done: null as null | (() => void),
+    hiddenLeft: 0, peeks: 0, hoverAt: 0,
+    glancing: false, nextGlance: 0, gi: 0,
+  }
+  const run = (steps: Step[], done: () => void) => {
+    hide.from = hide.off; hide.steps = steps; hide.t = 0; hide.done = done
+  }
+  function startHide() {
+    hide.mode = 'hiding'; hide.peeks = 0
+    hitEl.style.cursor = 'default'
+    // 살짝 움찔(위로) → 쏙 내려가기
+    run([{ to: -0.03, dur: 0.14, ease: 'out' }, { to: 1.03, dur: 0.38, ease: 'in' }], () => {
+      hide.mode = 'hidden'; hide.hiddenLeft = rand(3, 7)
+      // 안 보이는 동안 두리번(idle) 클립으로 바꿔 두고, 빼꼼할 때 눈 뜬 프레임만 골라 보여준다
+      const idle = from(manifest.startHub, 'idle')[0]
+      if (idle && cur?.def.id !== idle.id) queue(idle)
+      hide.glancing = true; hide.nextGlance = 0
+    })
+  }
+  function startPeek() {
+    hide.mode = 'peeking'
+    run([
+      { to: hideCfg.earsAt, dur: 0.55, ease: 'out', hold: rand(0.6, 1.1) },        // 귀 끝만 쫑긋
+      { to: hideCfg.eyesAt, dur: 0.5, ease: 'out', hold: rand(1.2, 2.2) },         // 눈까지 빼꼼, 두리번
+    ], () => {
+      if (hide.peeks < 2 && Math.random() < 0.35) {
+        // 놀라서 다시 쏙
+        hide.peeks++
+        run([{ to: 1.03, dur: 0.22, ease: 'in' }], () => { hide.mode = 'hidden'; hide.hiddenLeft = rand(1.5, 3) })
+      } else {
+        // 조심조심 올라와서 원래 자리로
+        hide.glancing = false
+        if (cur) void cur.video.play().catch(() => {})
+        run([
+          { to: hideCfg.eyesAt * 0.55, dur: 0.45, ease: 'inout', hold: 0.45 },
+          { to: 0, dur: 0.65, ease: 'back' },
+        ], () => { hide.mode = 'normal'; hide.off = 0; hitEl.style.cursor = 'grab'; awakeSince = performance.now() })
+      }
+    })
+  }
+  function updateHide(dt: number) {
+    if (hide.glancing && cur && cur.def.kind === 'idle' && !pending) {
+      const v = cur.video
+      if (!v.paused) v.pause()
+      const now = performance.now()
+      if (now >= hide.nextGlance) {
+        const g = hideCfg.glance
+        v.currentTime = g[hide.gi++ % g.length]
+        hide.nextGlance = now + rand(550, 1100) // 눈치 보듯 불규칙하게 시선 이동
+      }
+    }
+    if (hide.mode === 'hidden') {
+      hide.hiddenLeft -= dt
+      if (hide.hoverAt && performance.now() - hide.hoverAt > 350) hide.hiddenLeft = Math.min(hide.hiddenLeft, 0)
+      if (hide.hiddenLeft <= 0) { hide.hoverAt = 0; startPeek() }
+      return
+    }
+    const st = hide.steps[0]
+    if (!st) return
+    hide.t += dt
+    const k = Math.min(1, hide.t / st.dur)
+    hide.off = hide.from + (st.to - hide.from) * ease(st.ease, k)
+    if (hide.t >= st.dur + (st.hold ?? 0)) {
+      hide.steps.shift(); hide.from = st.to; hide.off = st.to; hide.t = 0
+      if (!hide.steps.length) { const d = hide.done; hide.done = null; d?.() }
+    }
+  }
+
   /* --------------------------------------------------------- petting UI */
   function spawnHeart(big = false) {
     const h = document.createElement('div')
@@ -235,6 +342,10 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     ], { duration: rand(1300, 1900), easing: 'ease-out' }).onfinish = () => h.remove()
   }
   const onMove = (e: PointerEvent) => {
+    if (hide.mode !== 'normal') {
+      if (hide.mode === 'hidden' && !hide.hoverAt) hide.hoverAt = performance.now()
+      return
+    }
     if (pet.has) {
       const d = Math.min(40, Math.hypot(e.clientX - pet.lastX, e.clientY - pet.lastY))
       pet.energy = Math.min(3, pet.energy + d * 0.012)
@@ -244,6 +355,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
   }
   const onLeave = () => { pet.has = false }
   const onDown = (e: PointerEvent) => {
+    if (hide.mode !== 'normal') { if (hide.mode === 'hidden') hide.hiddenLeft = 0; return }
     hitEl.setPointerCapture?.(e.pointerId)
     hitEl.style.cursor = 'grabbing'
     pet.energy = Math.min(3, pet.energy + 0.3)
@@ -271,9 +383,10 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     const dt = Math.min(0.1, (now - last) / 1000)
     last = now
 
+    updateHide(dt)
     // 쓰다듬기 에너지
     pet.energy = Math.max(0, pet.energy - dt * 0.45)
-    if (petting()) {
+    if (petting() && hide.mode === 'normal') {
       pet.heartT -= dt
       if (pet.heartT <= 0) { spawnHeart(); pet.heartT = rand(0.45, 0.9) }
       // 앉아 있는 중이면 행복 클립으로 빠르게 전환 (짧은 크로스페이드)
@@ -288,6 +401,9 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     if (cur && !pending && !fading) {
       const v = cur.video
       if (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06)) {
+        // 앉은 자세로 돌아온 순간, 가끔 바닥 밑으로 숨기
+        const atRest = from(cur.def.to, 'sleep').length === 0 && from(cur.def.to, 'idle').length > 0
+        if (atRest && hide.mode === 'normal' && !petting() && (performance.now() - awakeSince) / 1000 > 12 && Math.random() < hideCfg.chance) startHide()
         const nx = chooseNext(cur.def.to)
         queue(nx, Math.max(cur.def.fadeOut ?? 0, nx.fadeIn ?? 0))
       }
@@ -315,6 +431,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       if (fading) upload(fading.to, 1)
       else { gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, (fading ? null : cur.tex)) }
       gl.uniform1f(uMix, mixv)
+      gl.uniform1f(uOff, hide.off)
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
     if (visible) raf = requestAnimationFrame(frame)
@@ -342,7 +459,9 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       const def = manifest.clips.find((c) => c.id === id)
       if (def) queue(def, 0.3)
     },
-    get clip() { return cur?.def.id ?? '' },
+    hide() { if (hide.mode === 'normal') startHide() },
+    peek() { if (hide.mode === 'hidden') hide.hiddenLeft = 0 },
+    get clip() { return hide.mode === 'normal' ? (cur?.def.id ?? '') : hide.mode },
     destroy() {
       destroyed = true
       if (raf) cancelAnimationFrame(raf)

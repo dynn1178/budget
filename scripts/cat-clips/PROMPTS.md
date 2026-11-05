@@ -26,6 +26,38 @@ camera movement, zoom, scene cut, background change, extra cats, human, hands, t
 
 ---
 
+---
+
+## 💰 절약형: 영상 4개로 동작 대부분 만들기 (추천)
+
+영상 1개(10초)에 동작 여러 개를 **사이사이 기본 앉은 자세로 잠깐 멈추며** 이어서 시키면, 그 멈춘 지점에서 잘라 클립 여러 개로 씁니다.
+- 설정: 720p · Standard(또는 무료 크레딧) · **10초** · 시작/끝 프레임 = `kling_start_frame.png`
+- 바닥 밑으로 숨기/빼꼼은 영상 없이 코드로 구현되어 있어 만들 필요 없음
+
+**A. 평소 모습 (두리번 → 갸우뚱 → 눈인사 → 하품)**
+```
+The kitten does a series of small actions, briefly returning to its calm sitting pose between each one: first it hears a sound and looks further to the left, then glances up and back; next it tilts its head cutely to one side and the other; next it gives a slow loving blink at the viewer; finally it does a big cute yawn showing its pink tongue and blinks contentedly. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+**B. 행동 (앞발 세수 → 뒷발로 귀 긁기 → 꾹꾹이 → 재채기)**
+```
+The kitten does a series of small actions, briefly returning to its calm sitting pose between each one: first it licks one front paw and wipes it over its face like washing; next it lifts a hind leg and quickly scratches behind its ear so the little bell jingles; next it kneads the ground with its front paws, alternating softly with half-closed happy eyes; finally it scrunches its nose and does a tiny cute sneeze, then shakes its head. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+**C. 감정 · 쓰다듬기 반응 (행복한 표정 → 머리 비비기 → 야옹 → 깜짝)**
+```
+The kitten does a series of small reactions, briefly returning to its calm sitting pose between each one: first it closes its eyes happily and leans its head up as if an invisible hand is stroking it, purring blissfully; next it rubs its cheek and head against an invisible hand in front of it with eyes closed in delight; next it perks up its ears and does a cute small meow at the viewer; finally it is slightly startled, eyes wide and ears up with a tiny hop, then relaxes. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+**D. 낮잠 (졸다 잠들기 → 꿈꾸기 → 일어나 기지개)**
+```
+The kitten gets sleepy, its eyes slowly close and its head nods, then it lies down, curls up and sleeps with its head on its paws; while sleeping its paw and whiskers twitch as if dreaming and it breathes slowly; then it wakes up, stretches its front paws forward with a little yawn and sits back up in its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The kitten stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic kitten motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+---
+
+# 개별 클립 프롬프트 (크레딧 여유가 있을 때)
+
 ## 1. 평소 모습 (자주 나오는 대기 동작)
 
 | 파일명 (클립 id) | 상황 | 시작 → 끝 | 프롬프트 |
@@ -66,6 +98,8 @@ camera movement, zoom, scene cut, background change, extra cats, human, hands, t
 | `sleep_wake_stretch` | 일어나 기지개 | 자는 자세 → 앉음 | The kitten wakes up, opens its eyes, stretches its front paws forward with a little yawn, then sits up neatly. |
 
 ## 5. 바닥 밑으로 숨기 · 눈치 보며 올라오기
+
+> ✅ 지금은 **영상 없이 코드로 구현**되어 있어요(`manifest.ts`의 `hide`). 아래 프롬프트는 더 실감 나게 바꾸고 싶을 때만 사용하세요.
 
 화면 **아래쪽 끝이 바닥**이에요. 사이트에서는 고양이가 푸터 바닥선 아래로 쏙 들어갔다가 다시 나오는 것처럼 보입니다.
 
