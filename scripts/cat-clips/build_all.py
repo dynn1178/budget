@@ -29,6 +29,7 @@ CLIPS = {
     'sit_to_sleep': ('sit', 'sleep'),
     'sleep_loop': ('sleep', 'sleep'),
     'sleep_to_sit': ('sleep', 'sit'),
+    'sleep_wake_stretch': ('sleep', 'sit'),
 }
 
 
@@ -39,15 +40,21 @@ def main():
     ap.add_argument('--out', default=os.path.join(ROOT, 'public', 'cat', 'clips'))
     ap.add_argument('--width', type=int, default=420)
     ap.add_argument('--sim', default='0.16')
+    ap.add_argument('--hflip', action='store_true', help='좌우 반전')
+    ap.add_argument('--crop', default='1000:672:152:0', help="원본 자르기 w:h:x:y ('' = 자르지 않음). 기본값은 Kling 1280x720 + 왼쪽 보는 시작 프레임 기준")
+    ap.add_argument('--key', default='4ea252')
     a = ap.parse_args()
 
     done = 0
-    for cid, (h0, h1) in CLIPS.items():
+    names = sorted({os.path.splitext(f)[0] for f in os.listdir(a.raw) if f.endswith(('.mp4', '.mov', '.webm'))}) if os.path.isdir(a.raw) else []
+    for cid in names:
+        # 허브: 표에 있으면 그대로, 없으면 이름으로 추정 (sleep_* = 자는 자세, 나머지 = 앉은 자세)
+        h0, h1 = CLIPS.get(cid, ('sleep', 'sleep') if cid.startswith('sleep') else ('sit', 'sit'))
         src = next((os.path.join(a.raw, cid + ext) for ext in ('.mp4', '.mov', '.webm') if os.path.exists(os.path.join(a.raw, cid + ext))), None)
         if not src:
             continue
         cmd = [sys.executable, os.path.join(HERE, 'process_clip.py'), src, os.path.join(a.out, cid + '.mp4'),
-               '--width', str(a.width), '--sim', a.sim]
+               '--width', str(a.width), '--sim', a.sim] + (['--hflip'] if a.hflip else []) + (['--crop', a.crop] if a.crop else []) + ['--key', a.key]
         for flag, hub in (('--start-match', h0), ('--end-match', h1)):
             img = os.path.join(a.hubs, hub + '.png')
             if os.path.exists(img):

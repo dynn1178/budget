@@ -14,6 +14,8 @@ AI 고양이 클립 → 웹용 "투명 배경" 클립 변환기
   --start-match IMG      시작 0.3초를 기준 프레임(IMG)에서 부드럽게 이어지게
   --end-match first|IMG  끝 0.3초를 첫 프레임(first) 또는 IMG로 수렴 → 이음새 없는 연결
   --match-dur 0.35       위 두 블렌딩 길이(초)
+  --crop 1000:672:152:0  원본에서 고양이 영역만 잘라내기 (Kling 워터마크 제외)
+  --hflip                좌우 반전 (원본 영상/허브 이미지 기준으로 뒤집어서 저장)
 
 예)
   python3 process_clip.py raw/sit_idle.mp4 public/cat/clips/sit_idle.mp4 --end-match first
@@ -111,6 +113,8 @@ def main():
     ap.add_argument('--end-match', default=None, help="'first' 또는 이미지 경로")
     ap.add_argument('--match-dur', type=float, default=0.35)
     ap.add_argument('--crf', type=int, default=22)
+    ap.add_argument('--hflip', action='store_true', help='좌우 반전 (고양이가 바라보는 방향 바꾸기)')
+    ap.add_argument('--crop', default=None, help='원본에서 잘라낼 영역 w:h:x:y (예: Kling 1280x720 → 1000:672:152:0)')
     ap.add_argument('--lo', type=float, default=0.12, help='excess 키어: 이 비율 이하의 초록 초과량은 완전 불투명')
     ap.add_argument('--hi', type=float, default=0.45, help='excess 키어: 이 비율 이상은 완전 투명')
     ap.add_argument('--shrink', type=float, default=0.25, help='excess 키어: 경계 수축 정도(0~0.5)')
@@ -132,13 +136,13 @@ def main():
         # 1) 정규화 (fps, 크기, 자르기) → 무손실 중간 파일
         base = os.path.join(td, 'base.mkv')
         run(['ffmpeg', '-y', '-v', 'error', '-ss', str(t0), '-t', str(L), '-i', a.input,
-             '-vf', f'fps={a.fps},scale={W}:-2:flags=lanczos', '-an', '-c:v', 'ffv1', base])
+             '-vf', (f'crop={a.crop},' if a.crop else '') + f'fps={a.fps},scale={W}:-2:flags=lanczos' + (',hflip' if a.hflip else ''), '-an', '-c:v', 'ffv1', base])
 
         def still(img_or_first, out):
             if img_or_first == 'first':
                 run(['ffmpeg', '-y', '-v', 'error', '-i', base, '-frames:v', '1', out])
             else:
-                run(['ffmpeg', '-y', '-v', 'error', '-i', img_or_first, '-vf', f'scale={W}:-2:flags=lanczos', '-frames:v', '1', out])
+                run(['ffmpeg', '-y', '-v', 'error', '-i', img_or_first, '-vf', f'scale={W}:-2:flags=lanczos' + (',hflip' if a.hflip else ''), '-frames:v', '1', out])
 
         cur = base
         # 2) 끝 프레임 맞추기: 마지막 md초를 기준 프레임으로 크로스페이드

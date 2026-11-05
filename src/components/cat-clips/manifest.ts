@@ -17,8 +17,8 @@ const C = '/cat/clips/'
 export const defaultCatManifest: CatManifest = {
   startHub: 'sit',
   frame: { w: 420, h: 282 },
-  hit: { cx: 0.47, cy: 0.54, rx: 0.27, ry: 0.42 },
-  heartAt: { x: 0.48, y: 0.1 },
+  hit: { cx: 0.53, cy: 0.54, rx: 0.27, ry: 0.42 },
+  heartAt: { x: 0.52, y: 0.1 },
   clips: [
     { id: 'sit_idle', src: C + 'sit_idle.mp4', from: 'sit', to: 'sit', kind: 'idle', weight: 3 },
     { id: 'sit_wash', src: C + 'sit_wash.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 1, fadeOut: 0.4 },
