@@ -21,6 +21,9 @@ export interface ClipDef {
   /** idle: 평소 대기 / action: 그루밍 등 / pet: 쓰다듬기 반응 / sleep: 잠자는 루프 / transition: 허브 이동 */
   kind: 'idle' | 'action' | 'pet' | 'sleep' | 'transition'
   weight?: number
+  /** 이 클립으로 들어올 때 / 나갈 때 크로스페이드(초). 허브 프레임과 자세가 많이 다른 클립에 사용 */
+  fadeIn?: number
+  fadeOut?: number
 }
 
 export interface CatManifest {
@@ -208,7 +211,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     canvas.style.opacity = '1' // first frame is ready → fade in
     const d = slot.def
     if (d.kind === 'action') lastAction = d.id
-    if (d.kind === 'transition' && from(d.to, 'sleep').length) sleepLoopsLeft = Math.round(rand(3, 6))
+    if (d.kind === 'transition' && from(d.to, 'sleep').length) sleepLoopsLeft = Math.round(rand(5, 10))
     if (d.kind === 'transition' && !from(d.to, 'sleep').length) awakeSince = performance.now()
     options.onClip?.(d)
   }
@@ -284,7 +287,10 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     // 현재 클립이 끝나갈 때 다음 클립 시작 (같은 허브 프레임에서 이어짐)
     if (cur && !pending && !fading) {
       const v = cur.video
-      if (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06)) queue(chooseNext(cur.def.to))
+      if (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06)) {
+        const nx = chooseNext(cur.def.to)
+        queue(nx, Math.max(cur.def.fadeOut ?? 0, nx.fadeIn ?? 0))
+      }
     }
     // 다음 클립의 첫 프레임이 준비되면 교체 (그 전까지는 이전 클립의 마지막 프레임 유지)
     if (pending) {

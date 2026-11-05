@@ -92,3 +92,28 @@ import ClipCat from '@/components/cat-clips/ClipCat'
 
 - `sit_yawn` 등 클립을 추가했다면 `manifest.ts`의 `clips`에 한 줄 추가
 - 쓰다듬기 영역이 고양이와 안 맞으면 `manifest.ts`의 `hit`(0~1 비율 타원)을 조정
+
+---
+
+## 참고: 영상 1개에서 여러 클립 잘라 쓰기 (현재 적용된 방식)
+
+Kling 영상 1개(앉기 → 두리번 → 앞발 핥기 → 하품 → 엎드려 잠들기)를 잘라 6개 클립을 만들었습니다.
+
+| 클립 | 구간 | 만드는 법 |
+|---|---|---|
+| `sit_idle` | 0.0–0.9초 | 정방향 + 역방향(핑퐁) → 끊김 없는 루프 |
+| `sit_wash` | 0.0–2.25초 | 정방향, 끝은 재생 중 크로스페이드(`fadeOut`) |
+| `pet` | 2.2–3.05초 | 핑퐁, 들어갈 때·나올 때 크로스페이드 |
+| `sit_to_sleep` | 0.0–3.6초 | 정방향 (끝 프레임 = 자는 자세 허브) |
+| `sleep_loop` | 3.6–4.45초 | 핑퐁 |
+| `sleep_to_sit` | 3.6→2.3초 | 역재생(일어나기) + `fadeOut` |
+
+```bash
+CROP="crop=1000:672:128:0"   # 고양이 전체 포함 + 오른쪽 아래 Kling 워터마크 제외
+# 핑퐁 예시
+ffmpeg -ss 0 -t 0.9 -i clip.mp4 -an -filter_complex "[0]$CROP,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1" sit_idle.mp4
+python3 scripts/cat-clips/process_clip.py sit_idle.mp4 public/cat/clips/sit_idle.mp4 --key 4ea252 --width 420
+```
+
+- 배경 제거는 기본값(`--keyer excess`, 초록이 빨강·파랑보다 얼마나 강한지로 판단)을 쓰세요. 검은 털이 지워지지 않습니다.
+- 자세 차이가 큰 클립에 `--start-match/--end-match`를 쓰면 배경과 섞인 얼룩이 생길 수 있어요 → 대신 `manifest.ts`의 `fadeIn/fadeOut` 사용.
