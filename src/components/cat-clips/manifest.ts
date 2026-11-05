@@ -16,6 +16,10 @@ const C = '/cat/clips/'
 
 export const defaultCatManifest: CatManifest = {
   startHub: 'sit',
+  // 원본보다 차분하게: 기본 0.7배, 빠른 동작은 클립별 0.85배
+  speed: 0.7,
+  // 우클릭으로 숨은 뒤 다시 나타나기까지 (초)
+  hiddenFor: 180,
   frame: { w: 420, h: 282 },
   hit: { cx: 0.53, cy: 0.54, rx: 0.27, ry: 0.42 },
   heartAt: { x: 0.52, y: 0.1 },
@@ -34,14 +38,14 @@ export const defaultCatManifest: CatManifest = {
     { id: 'cat_paw_lick', src: C + 'cat_paw_lick.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 1, fadeOut: 0.3, label: '앞발 핥기, 혀 쏙 (B)' },
     { id: 'cat_face_wash', src: C + 'cat_face_wash.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 1, fadeIn: 0.3, fadeOut: 0.3, label: '앞발로 세수 (B)' },
     { id: 'cat_content', src: C + 'cat_content.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 0.8, fadeIn: 0.3, fadeOut: 0.3, label: '눈 감고 기분 좋은 표정 (B)' },
-    { id: 'cat_sneeze', src: C + 'cat_sneeze.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 0.8, fadeIn: 0.3, label: '재채기 + 고개 털기 (B)' },
-    { id: 'cat_meow', src: C + 'cat_meow.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 1, fadeIn: 0.3, fadeOut: 0.3, label: '야옹 (C)' },
-    { id: 'cat_startle', src: C + 'cat_startle.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 0.6, fadeIn: 0.3, label: '깜짝 놀라 폴짝 (C)' },
+    { id: 'cat_sneeze', src: C + 'cat_sneeze.mp4', from: 'sit', to: 'sit', kind: 'action', speed: 0.85, weight: 0.8, fadeIn: 0.3, label: '재채기 + 고개 털기 (B)' },
+    { id: 'cat_meow', src: C + 'cat_meow.mp4', from: 'sit', to: 'sit', kind: 'action', speed: 0.85, weight: 1, fadeIn: 0.3, fadeOut: 0.3, label: '야옹 (C)' },
+    { id: 'cat_startle', src: C + 'cat_startle.mp4', from: 'sit', to: 'sit', kind: 'action', speed: 0.85, weight: 0.6, fadeIn: 0.3, label: '깜짝 놀라 폴짝 (C)' },
     { id: 'cat_hide_peek', src: C + 'cat_hide_peek.mp4', from: 'sit', to: 'sit', kind: 'action', weight: 0.5, label: '살포시 숨었다가 빼꼼 (G)' },
     // ── 쓰다듬기 · 간식 ─────────────────────────────
     { id: 'pet', src: C + 'pet.mp4', from: 'sit', to: 'sit', kind: 'pet', fadeIn: 0.35, fadeOut: 0.35, label: '쓰다듬 반응 — 활짝 웃기 (첫 영상)' },
     { id: 'cat_pet_bliss', src: C + 'cat_pet_bliss.mp4', from: 'sit', to: 'sit', kind: 'pet', fadeOut: 0.3, label: '쓰다듬 반응 — 눈 감고 기대기 (C)' },
-    { id: 'cat_treat', src: C + 'cat_treat.mp4', from: 'sit', to: 'sit', kind: 'treat', fadeIn: 0.3, label: '간식 먹기 — 발견 → 냠냠 → 입맛 (E)' },
+    { id: 'cat_treat', src: C + 'cat_treat.mp4', from: 'sit', to: 'sit', kind: 'treat', speed: 0.85, fadeIn: 0.3, label: '간식 먹기 — 발견 → 냠냠 → 입맛 (E)' },
     // ── 잠 ───────────────────────────────────────────
     { id: 'sit_to_sleep', src: C + 'sit_to_sleep.mp4', from: 'sit', to: 'sleep', kind: 'transition', label: '놀다가 잠들기 (첫 영상)' },
     { id: 'sleep_loop', src: C + 'sleep_loop.mp4', from: 'sleep', to: 'sleep', kind: 'sleep', label: '쿨쿨 (첫 영상)' },
@@ -49,5 +53,8 @@ export const defaultCatManifest: CatManifest = {
     { id: 'cat_doze_off', src: C + 'cat_doze_off.mp4', from: 'sit', to: 'nap', kind: 'transition', label: '꾸벅꾸벅 졸다 엎드리기 (D)' },
     { id: 'cat_nap_loop', src: C + 'cat_nap_loop.mp4', from: 'nap', to: 'nap', kind: 'sleep', label: '엎드려 쌔근쌔근 (D)' },
     { id: 'cat_wake_yawn', src: C + 'cat_wake_yawn.mp4', from: 'nap', to: 'sit', kind: 'transition', fadeIn: 0.3, label: '하품하며 깨서 앉기 (D)' },
+    // ── 우클릭 숨기 → 3분 뒤 나타나기 ─────────────────
+    { id: 'cat_hide', src: C + 'cat_hide.mp4', from: 'sit', to: 'hidden', kind: 'hide', speed: 0.85, label: '우클릭 → 살포시 내려가 숨기 (G 0–1.2초)' },
+    { id: 'cat_appear', src: C + 'cat_appear.mp4', from: 'hidden', to: 'sit', kind: 'appear', speed: 0.75, label: '귀 끝 → 눈치 빼꼼 → 올라와 자리 잡기 (G 1.2–5초)' },
   ],
 }

@@ -21,9 +21,11 @@ export interface ClipDef {
   from: Hub
   to: Hub
   /** idle: 평소 대기 / action: 그루밍 등 / pet: 쓰다듬기 반응 / treat: 간식 반응(feed()로만) / sleep: 잠자는 루프 / transition: 허브 이동 */
-  kind: 'idle' | 'action' | 'pet' | 'treat' | 'sleep' | 'transition'
+  kind: 'idle' | 'action' | 'pet' | 'treat' | 'sleep' | 'transition' | 'hide' | 'appear'
   /** 화면에 보여줄 이름/설명 (선택) */
   label?: string
+  /** 이 클립의 재생 속도 (manifest.speed 보다 우선) */
+  speed?: number
   weight?: number
   /** 이 클립으로 들어올 때 / 나갈 때 크로스페이드(초). 허브 프레임과 자세가 많이 다른 클립에 사용 */
   fadeIn?: number
@@ -39,6 +41,10 @@ export interface CatManifest {
   /** 하트가 나오는 위치 (프레임 기준 0~1) */
   heartAt?: { x: number; y: number }
   /** 바닥 밑으로 숨기/빼꼼 연출 (영상 없이 코드로). 값은 '아래로 내려간 비율'(0 = 그대로, 1 = 완전히 숨음) */
+  /** 우클릭으로 숨은 뒤 다시 나타나기까지의 시간(초). 기본 180 (3분) */
+  hiddenFor?: number
+  /** 기본 재생 속도 (1 = 원본, 0.7 = 70%) */
+  speed?: number
   hide?: {
     /** 허브(앉은 자세)에서 클립이 끝날 때마다 숨을 확률 (기본 0.12) */
     chance?: number
@@ -68,6 +74,10 @@ export interface ClipCatHandle {
   peek(): void
   /** 간식 주기 — treat 클립 재생 (앉아 있을 때) */
   feed(): boolean
+  /** 우클릭과 같은 동작: 숨기 클립 재생 → 숨은 상태 유지 → hiddenFor 초 뒤 나타나기 */
+  vanish(): boolean
+  /** 숨어 있으면 지금 바로 나타나기 (데모/테스트용) */
+  appear(): void
   readonly clip: string
   destroy(): void
 }
@@ -212,7 +222,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     const awakeFor = (performance.now() - awakeSince) / 1000
     const options: ClipDef[] = []
     for (const c of from(hub)) {
-      if (c.kind === 'pet' || c.kind === 'treat') continue
+      if (c.kind === 'pet' || c.kind === 'treat' || c.kind === 'hide' || c.kind === 'appear') continue
       if (c.kind === 'transition') {
         // 깨어 있은 지 오래될수록 잠들 확률 ↑
         if (awakeFor < 35) continue
@@ -229,6 +239,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     const slot = slotFor(def)
     const v = slot.video
     v.currentTime = 0
+    v.playbackRate = def.speed ?? manifest.speed ?? 1
     void v.play().catch(() => {})
     pending = { slot, fade }
     // 다음에 이어질 수 있는 클립 미리 로드
@@ -346,6 +357,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     ], { duration: rand(1300, 1900), easing: 'ease-out' }).onfinish = () => h.remove()
   }
   const onMove = (e: PointerEvent) => {
+    if (away.state !== 'none') return
     if (hide.mode !== 'normal') {
       if (hide.mode === 'hidden' && !hide.hoverAt) hide.hoverAt = performance.now()
       return
@@ -358,7 +370,34 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     pet.has = true; pet.lastX = e.clientX; pet.lastY = e.clientY
   }
   const onLeave = () => { pet.has = false }
+  /* ------------------------------------------- 우클릭 숨기 (hide → hidden → appear) */
+  const HIDDEN_FOR = (manifest.hiddenFor ?? 180) * 1000
+  const away = { state: 'none' as 'none' | 'hiding' | 'hidden' | 'appearing', until: 0 }
+  function vanish(): boolean {
+    if (away.state !== 'none' || hide.mode !== 'normal' || !cur) return false
+    const hideClip = manifest.clips.find((c) => c.kind === 'hide')
+    if (!hideClip) return false
+    pet.energy = 0; pet.lastMove = -1e9
+    // 앉아서 대기 중이면 바로, 다른 동작 중이면 짧게 겹쳐서 숨는 동작으로 이어짐
+    const atHub = cur.def.to === hideClip.from && (cur.def.kind === 'idle' || cur.def.kind === 'action')
+    queue(hideClip, atHub ? 0.2 : 0.3)
+    away.state = 'hiding'
+    hitEl.style.cursor = 'default'
+    return true
+  }
+  function appearNow() {
+    if (away.state !== 'hidden') return
+    const ap = manifest.clips.find((c) => c.kind === 'appear')
+    if (!ap) { away.state = 'none'; canvas.style.opacity = '1'; return }
+    away.state = 'appearing'
+    queue(ap, 0)
+    canvas.style.opacity = '1'
+  }
+  const onContext = (e: MouseEvent) => { e.preventDefault(); vanish() }
+  hitEl.addEventListener('contextmenu', onContext)
+
   const onDown = (e: PointerEvent) => {
+    if (e.button === 2) return // 우클릭은 숨기 전용
     if (hide.mode !== 'normal') { if (hide.mode === 'hidden') hide.hiddenLeft = 0; return }
     hitEl.setPointerCapture?.(e.pointerId)
     hitEl.style.cursor = 'grabbing'
@@ -390,7 +429,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
     updateHide(dt)
     // 쓰다듬기 에너지
     pet.energy = Math.max(0, pet.energy - dt * 0.45)
-    if (petting() && hide.mode === 'normal') {
+    if (petting() && hide.mode === 'normal' && away.state === 'none') {
       pet.heartT -= dt
       if (pet.heartT <= 0) { spawnHeart(); pet.heartT = rand(0.45, 0.9) }
       // 앉아 있는 중이면 행복 클립으로 빠르게 전환 (짧은 크로스페이드)
@@ -401,10 +440,28 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       }
     }
 
+    // 숨은 상태: 아무것도 그리지 않고 기다렸다가 hiddenFor 뒤 나타나기
+    if (away.state === 'hidden') {
+      if (performance.now() >= away.until) appearNow()
+      if (visible) raf = requestAnimationFrame(frame)
+      return
+    }
     // 현재 클립이 끝나갈 때 다음 클립 시작 (같은 허브 프레임에서 이어짐)
     if (cur && !pending && !fading) {
       const v = cur.video
-      if (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06)) {
+      if (away.state === 'hiding' && cur.def.kind === 'hide' && (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06))) {
+        // 숨기 클립 끝: 남은 귀 끝까지 살짝 페이드아웃하고 숨은 상태로
+        away.state = 'hidden'
+        away.until = performance.now() + HIDDEN_FOR
+        canvas.style.opacity = '0'
+        v.pause()
+        if (visible) raf = requestAnimationFrame(frame)
+        return
+      }
+      if (away.state === 'appearing' && cur.def.kind === 'appear') {
+        if (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06)) { away.state = 'none'; hitEl.style.cursor = 'grab'; awakeSince = performance.now() }
+      }
+      if (away.state === 'none' && (v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.06))) {
         // 앉은 자세로 돌아온 순간, 가끔 바닥 밑으로 숨기
         const atRest = from(cur.def.to, 'sleep').length === 0 && from(cur.def.to, 'idle').length > 0
         if (atRest && hide.mode === 'normal' && !petting() && (performance.now() - awakeSince) / 1000 > 12 && Math.random() < hideCfg.chance) startHide()
@@ -464,8 +521,10 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       if (def) queue(def, 0.3)
     },
     hide() { if (hide.mode === 'normal') startHide() },
+    vanish,
+    appear: appearNow,
     feed() {
-      if (hide.mode !== 'normal' || !cur) return false
+      if (hide.mode !== 'normal' || away.state !== 'none' || !cur) return false
       const hub = cur.def.to
       if (from(hub, 'sleep').length) return false // 자는 중엔 못 먹어요
       const treats = from(hub, 'treat')
@@ -477,7 +536,7 @@ export function createClipCat(container: HTMLElement, manifest: CatManifest, opt
       return true
     },
     peek() { if (hide.mode === 'hidden') hide.hiddenLeft = 0 },
-    get clip() { return hide.mode === 'normal' ? (cur?.def.id ?? '') : hide.mode },
+    get clip() { return away.state === 'hidden' ? 'away' : hide.mode === 'normal' ? (cur?.def.id ?? '') : hide.mode },
     destroy() {
       destroyed = true
       if (raf) cancelAnimationFrame(raf)

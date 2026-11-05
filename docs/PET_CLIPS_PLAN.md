@@ -10,7 +10,8 @@
 - 홈페이지 **하단(푸터) 바닥선 위에 앉아 있는 펫**이 AI로 만든 짧은 동작 영상(클립)을 이어 재생해 살아 있는 것처럼 움직입니다.
 - 펫 2종: **까망이(검은 아기고양이)**, **아기 말티즈**. 둘 다 **왼쪽을 바라봄**.
 - 모든 클립은 **같은 "기준 자세(허브)" 프레임에서 시작·끝**나도록 만들어져 있어 클립이 바뀌어도 끊김이 보이지 않습니다.
-- 사용자 상호작용: **쓰다듬기**(마우스/손가락으로 문지르기), **간식 주기**(버튼), (선택) 클릭, 숨바꼭질 중 마우스 가까이 대기.
+- 사용자 상호작용: **쓰다듬기**(마우스/손가락으로 문지르기), **간식 주기**(버튼), **우클릭 = 숨기**(3분 뒤 눈치 보며 다시 등장), (선택) 클릭.
+- 재생 속도: 원본보다 차분하게 **기본 0.7배**, 빠른 동작은 **0.85배**.
 
 ---
 
@@ -39,8 +40,9 @@ public/
 
 | 용어 | 뜻 |
 |---|---|
-| **허브(hub)** | 클립이 시작·끝나는 기준 자세. `sit`(앉음), `sleep`/`nap`(잠) |
-| **종류(kind)** | `idle` 평소 대기 · `action` 가끔 하는 행동 · `pet` 쓰다듬기 반응 · `treat` 간식 반응 · `sleep` 잠 반복 · `transition` 허브 이동(앉음↔잠) |
+| **허브(hub)** | 클립이 시작·끝나는 기준 자세. `sit`(앉음), `sleep`/`nap`(잠), `hidden`(바닥선 아래로 완전히 숨음 = 빈 화면) |
+| **종류(kind)** | `idle` 평소 대기 · `action` 가끔 하는 행동 · `pet` 쓰다듬기 반응 · `treat` 간식 반응 · `sleep` 잠 반복 · `transition` 허브 이동(앉음↔잠) · `hide` 숨기(앉음→숨음) · `appear` 나타나기(숨음→앉음) |
+| **speed** | 재생 속도 배율. 펫 전체 기본값 + 클립별 덮어쓰기 |
 | **가중치(weight)** | 자동 선택 확률 (클수록 자주) |
 | **fadeIn / fadeOut** | 영상 중간에서 잘라 허브와 자세가 다른 클립 → 들어올 때/나갈 때 0.3~0.4초 크로스페이드 |
 | **왕복(ping-pong)** | 정방향 + 역방향으로 붙여 시작=끝이 되는 루프 클립 |
@@ -71,7 +73,7 @@ public/
 | `cat_sneeze` | 재채기 후 고개 털고 앉기 | sit→sit | 0.8 | in 0.3 |
 | `cat_meow` | 정면 보며 "야옹" | sit→sit | 1 | in/out 0.3 |
 | `cat_startle` | 깜짝 놀라 폴짝 뛰었다가 앉기 | sit→sit | 0.6 | in 0.3 |
-| `cat_hide_peek` | 살포시 바닥선 아래로 숨었다가 귀·눈만 빼꼼 → 올라와 앉기 | sit→sit | 0.5 | – |
+| `cat_hide_peek` | 살포시 바닥선 아래로 숨었다가 귀·눈만 빼꼼 → 올라와 앉기 (자동, 가끔 짧게) | sit→sit | 0.5 | – |
 
 ### 4-3. 쓰다듬기 · 간식
 | 클립 id | 동작 설명 | 종류 | 허브 | 페이드 |
@@ -89,6 +91,16 @@ public/
 | `cat_doze_off` | 꾸벅꾸벅 졸다가 엎드리기 | transition | sit→nap | – |
 | `cat_nap_loop` | 엎드려 쌔근쌔근 (왕복) | sleep | nap→nap | – |
 | `cat_wake_yawn` | 하품하며 깨서 앉기 | transition | nap→sit | in 0.3 |
+
+---
+
+### 4-5. 우클릭 숨기 → 3분 뒤 나타나기
+| 클립 id | 동작 설명 | 종류 | 허브 | 속도 |
+|---|---|---|---|---|
+| `cat_hide` | 살포시 몸을 낮춰 바닥선 아래로 스르륵 내려감 (G 0~1.2초) · 끝에 남은 귀 끝은 0.3초 페이드아웃 | hide | sit→hidden | 0.85 |
+| `cat_appear` | 귀 끝이 올라옴 → 눈만 빼꼼, 좌우 눈치 → 위로 올라와 자리 잡고 앉기 (G 1.2~5초) | appear | hidden→sit | 0.75 |
+
+**재생 속도(고양이):** 기본 0.7배 · 0.85배 = `cat_startle`, `cat_sneeze`, `cat_meow`, `cat_treat`, `cat_hide`
 
 ---
 
@@ -118,7 +130,7 @@ public/
 | `dog_lick_lips` | 혀로 입맛 다시기 | sit→sit | 0.6 | in/out 0.3 |
 | `dog_thank_paw` | 앞발 들고 활짝 웃기 ("고마워") | sit→sit | 0.6 | in 0.3 |
 | `dog_paw_shake` | 앞발 내밀기 ("손!") | sit→sit | 0.8 | in/out 0.3 |
-| `dog_hide_peek` | 쏙 숨었다가 담벼락 넘듯 앞발 걸치고 빼꼼 → 영차 넘어와 앉기 | sit→sit | 0.5 | – |
+| `dog_hide_peek` | 쏙 숨었다가 담벼락 넘듯 앞발 걸치고 빼꼼 → 영차 넘어와 앉기 (자동, 가끔 짧게) | sit→sit | 0.5 | – |
 
 ### 5-3. 쓰다듬기 · 간식
 | 클립 id | 동작 설명 | 종류 | 허브 | 페이드 |
@@ -133,14 +145,21 @@ public/
 | `dog_nap_loop` | 엎드려 쌔근쌔근 (왕복) | sleep | nap→nap | – |
 | `dog_wake_stretch` | 엉덩이 들고 기지개 + 하품 후 앉기 | transition | nap→sit | in 0.3 |
 
-### 5-5. 라이브러리 전용 (자동 재생에 쓰지 않음, 필요 시 활용)
+### 5-5. 우클릭 숨기 → 3분 뒤 나타나기
+| 클립 id | 동작 설명 | 종류 | 허브 | 속도 |
+|---|---|---|---|---|
+| `dog_hide` | 몸을 낮추고 바닥선 아래로 쏙 사라짐 (M6 0~0.9초, 끝 = 빈 화면) | hide | sit→hidden | 0.85 |
+| `dog_appear` | 앞발이 바닥선에 걸침 → 귀·눈 빼꼼, 요리조리 눈치 → 한 번 쏙 → 영차 넘어와 털고 앉기 (M6 0.9~5초) | appear | hidden→sit | 0.75 |
+
+**재생 속도(강아지):** 기본 0.7배 · 0.85배 = `dog_scratch`, `dog_shake`, `dog_hop`, `dog_spin`, `dog_play_bow`, `dog_yawn`, `dog_treat`, `dog_hide`
+
+### 5-6. 라이브러리 전용 (자동 재생에 쓰지 않음, 필요 시 활용)
 | 클립 id | 동작 설명 |
 |---|---|
 | `dog_beg` | 두 발 들고 "주세요" + 간식이 떨어지는 순간 |
 | `dog_treat_eat` | 간식 냠냠 먹는 부분만 |
-| `dog_hide` | 앉음 → 바닥선 아래로 쏙 사라지기 (끝 = 빈 화면) |
-| `dog_peek` | 빈 화면 → 앞발 걸치고 빼꼼, 요리조리 눈치 |
-| `dog_climb_up` | 영차 넘어와서 털고 앉기 |
+| `dog_peek` | 빈 화면 → 앞발 걸치고 빼꼼, 요리조리 눈치 (`dog_appear` 앞부분) |
+| `dog_climb_up` | 영차 넘어와서 털고 앉기 (`dog_appear` 뒷부분) |
 
 ---
 
@@ -154,22 +173,40 @@ public/
 | **쓰다듬기** (펫 위에서 문지르기) | `pet`, `cat_pet_bliss` 중 랜덤 | `dog_pet_happy` | 즉시 0.35초 크로스페이드로 전환 · 하트 💗 0.45~0.9초마다 |
 | 쓰다듬기 계속 | pet 클립 반복 | pet 클립 반복 | 문지르기 멈추고 약 0.9초 지나면 평소 동작으로 |
 | 펫 클릭/탭 | (선택) `cat_meow` | (선택) `dog_happy_pant` | 큰 하트 1개 + 쓰다듬기 에너지 약간 |
-| **간식 주기** (버튼) | `cat_treat` | `dog_treat` | 앉아 있을 때만 · 1.8초 후 하트 · 권장 쿨다운 15~20초 |
+| **간식 주기** (버튼) | `cat_treat` | `dog_treat` | 앉아 있을 때만(잠·숨은 상태 제외) · 1.8초 후 하트 · 권장 쿨다운 15~20초 |
 | 깨어 있은 지 35초 이상 | `sit_to_sleep` 또는 `cat_doze_off` (확률 점점 증가) | `dog_doze_off` | 잠 클립 5~10회 반복 후 깨기 |
 | 자는 중 | `sleep_loop` / `cat_nap_loop` 반복 | `dog_nap_loop` 반복 | |
 | 자는 중 쓰다듬기 | 깨기 클립(`sleep_to_sit`/`cat_wake_yawn`) → 쓰다듬기 반응 | `dog_wake_stretch` → `dog_pet_happy` | 자는 중엔 간식 불가 |
-| 가끔 숨바꼭질 | `cat_hide_peek` (가중치 0.5) | `dog_hide_peek` (가중치 0.5) | 영상 버전 |
-| 숨은 동안 마우스 가까이 | (코드 연출 사용 시) 빨리 빼꼼 | – | 7-5 참고 |
+| **펫 우클릭** | `cat_hide` → 숨은 상태 | `dog_hide` → 숨은 상태 | 브라우저 메뉴 대신 숨기 · 6-4 참고 |
+| 숨은 상태 (약 3분) | 아무것도 표시 안 함 | 아무것도 표시 안 함 | 쓰다듬기·간식·우클릭 무시 |
+| 3분 경과 | `cat_appear` (눈치 → 올라와 앉기) | `dog_appear` (빼꼼 → 영차 → 앉기) | 이후 평소 동작으로 |
+| 가끔 짧은 숨바꼭질 (자동) | `cat_hide_peek` (가중치 0.5) | `dog_hide_peek` (가중치 0.5) | 5초짜리 · 끄려면 가중치 0 |
 | 화면 밖으로 스크롤 / 탭 비활성 | 재생 일시정지 | 재생 일시정지 | 성능 |
 
-### 6-2. 자동 선택 규칙 (앉은 자세에서 클립이 끝날 때마다)
-1. 지금 **쓰다듬는 중**이면 → `pet` 종류 클립
-2. **자는 중**이면 → `sleep` 클립을 남은 횟수만큼 반복, 다 하면(또는 쓰다듬으면) `transition`으로 깨기
-3. 그 외에는 같은 허브에서 출발하는 클립 중 **가중치 랜덤**
-   - `pet`, `treat` 종류는 자동 선택에서 **제외** (상호작용으로만)
-   - 잠들기(`transition`)는 **깨어 있은 지 35초 이후**에만, 시간이 지날수록 확률 증가 (최대 1.5배)
-   - 같은 `action`이 **두 번 연속 나오지 않게**
-4. 다음 클립의 `fadeIn`과 현재 클립의 `fadeOut` 중 큰 값으로 크로스페이드 (0이면 이음새 없이 바로 이어 붙임)
+### 6-2. 그 외 시간의 자동 재생 규칙 (상호작용이 없을 때)
+앉은 자세(`sit`)에서 클립 하나가 끝날 때마다 다음 클립을 고릅니다.
+
+1. **쓰다듬는 중**이면 → `pet` 클립 (상호작용 우선)
+2. **자는 중**(`sleep`/`nap` 허브)이면 → 잠 루프를 정해진 횟수(5~10회)만큼 반복 → 다 하면(또는 쓰다듬으면) 깨기(`transition`)
+3. 그 외 → 같은 허브에서 출발하는 클립 중 **가중치 랜덤**
+   - 제외: `pet`, `treat`, `hide`, `appear` (상호작용으로만 재생)
+   - 같은 `action`은 **두 번 연속 나오지 않음**
+   - 잠들기(`transition`)는 **깨어 있은 지 35초 이후**부터 후보가 되고, 시간이 지날수록 확률이 커짐 (35초 지점 0 → 95초 지점에 가중치 1, 최대 1.5)
+4. 다음 클립의 `fadeIn`과 현재 클립의 `fadeOut` 중 큰 값으로 크로스페이드 (0이면 이음새 없이 이어 붙임)
+
+**대략적인 비율 (가중치 합 기준)**
+| 펫 | 평소 모습(idle) | 행동(action) | 비고 |
+|---|---|---|---|
+| 고양이 | 약 52% (`sit_idle`·`cat_look_up`·`cat_gaze` 각 2, `cat_stare`·`cat_head_tilt` 각 1) | 약 48% (9종, 가중치 0.5~1) | 숨바꼭질(`cat_hide_peek`) 약 3% |
+| 강아지 | 약 42% (`dog_look_around` 3, 갸우뚱·혀 쏙 각 1.5, 내려다보기 1) | 약 58% (12종, 가중치 0.5~1) | 숨바꼭질(`dog_hide_peek`) 약 3% |
+
+**흐름 예시 (0.7배 속도 기준, 클립 1개 ≈ 1.5~4초)**
+```
+[로드] 두리번 → 갸우뚱 → 하품 → 두리번 → 세수 → 정면 응시 → 야옹 → …
+        (35초 이후) … → 꾸벅꾸벅 엎드리기 → 쌔근쌔근 ×5~10 (약 15~60초) → 기지개/하품하며 앉기 → 처음부터 반복
+   ※ 어느 시점이든: 문지르기 = 쓰다듬기 반응 / 간식 버튼 = 간식 / 우클릭 = 숨기(3분)
+```
+> 평소 모습 비율을 높이고 싶으면 `idle` 가중치를 올리거나 `action` 가중치를 낮추면 됩니다 (차분한 사이트는 idle 70% 권장).
 
 ### 6-3. 쓰다듬기 판정
 - 펫 몸 위의 **타원 영역**(프레임 비율: 고양이 `cx .47 cy .54 rx .27 ry .42`, 강아지 `cx .5 cy .56 rx .3 ry .4`)에서만 포인터 이벤트를 받음 → 푸터의 다른 링크 클릭을 막지 않음
@@ -177,6 +214,36 @@ public/
 - **에너지 > 0.5 또는 마지막 움직임 0.9초 이내 = 쓰다듬는 중**
 - 누르기(pointerdown) = 에너지 +0.3, 큰 하트
 - 모바일: `touch-action: none` 으로 문지르는 동안 스크롤되지 않게
+
+### 6-4. 우클릭 숨기 → 3분 뒤 등장 (상세)
+```
+[앉아 있음/아무 동작 중]
+   │  펫 위에서 우클릭 (contextmenu → preventDefault, 브라우저 메뉴 대신)
+   ▼
+ hide 클립 (cat_hide / dog_hide)
+   - 앉아서 대기·행동 중이면 0.2초, 그 외(쓰다듬기·간식·잠 등)에서는 0.3초 크로스페이드로 이어 붙임
+   - 끝나면 캔버스를 0.3~0.4초 페이드아웃 (고양이의 남은 귀 끝까지 사라지게)
+   ▼
+ [숨은 상태 hidden] ── 약 3분(hiddenFor: 180초) 동안 아무것도 그리지 않음
+   - 쓰다듬기·간식·우클릭 모두 무시 / 영상은 일시정지
+   ▼  (3분 경과)
+ appear 클립 (cat_appear / dog_appear) — 캔버스 페이드인과 함께 시작
+   - 귀 끝 → 눈만 빼꼼, 좌우 눈치 → 위로 올라옴 → 자리 잡고 앉기 (0.75배 속도)
+   ▼
+ [앉음] → 평소 자동 재생으로 복귀 (깨어 있는 시간 카운트 초기화)
+```
+- 우클릭 대상: 기본은 **펫 영역**에서만. 푸터 전체로 넓히려면 푸터의 `contextmenu`에서 `vanish()` 호출
+- 숨은 시간 조절: manifest `hiddenFor` (초)
+- 테스트용: `appear()` 를 호출하면 3분을 기다리지 않고 바로 등장
+
+### 6-5. 재생 속도
+| 구분 | 속도 | 이유 |
+|---|---|---|
+| 기본 (평소·쓰다듬기·잠·나타나기) | **0.7배** (`appear`는 0.75배) | 원본(Kling)이 다소 빨라 차분하고 귀엽게 |
+| 빠른 동작 (폴짝·재채기·털기·돌기·놀자 자세·간식·숨기 등) | **0.85배** | 너무 느리면 둥둥 떠 보여 어색함 |
+
+- 구현: `<video>.playbackRate` = 클립 `speed` → 없으면 manifest `speed` → 없으면 1
+- 원본 24fps라 0.7배에서는 초당 약 17장 → 큰 움직임에서 살짝 끊겨 보이면 변환 시 프레임 보간(`ffmpeg minterpolate`)으로 부드럽게 만들 수 있음
 
 ---
 
@@ -195,6 +262,7 @@ import { dogManifest } from '@/components/cat-clips/manifest-dog'
 </footer>
 ```
 3. 간식 버튼: `onReady={(cat) => (petRef.current = cat)}` 후 `petRef.current.feed()`
+4. 우클릭 숨기는 내장(펫 영역 `contextmenu`). 다른 버튼에서 숨기려면 `petRef.current.vanish()`, 바로 등장은 `appear()`
 
 ### 7-2. 일반 HTML 사이트
 `clip-player.ts`를 JS로 빌드(`tsc --target es2019 --module esnext`)해 올린 뒤:
@@ -205,6 +273,7 @@ import { dogManifest } from '@/components/cat-clips/manifest-dog'
   import { defaultCatManifest } from '/pet/manifest.js'
   const pet = createClipCat(document.getElementById('pet'), defaultCatManifest, { width: 220 })
   document.querySelector('#feed-btn').onclick = () => pet.feed()
+  // 우클릭 숨기는 내장. 다른 곳에서: pet.vanish() / 바로 등장: pet.appear()
 </script>
 ```
 > 클립을 다른 도메인(CDN)에 두면 CORS 허용 + `video.crossOrigin = 'anonymous'` 필요.
@@ -227,12 +296,16 @@ gl_FragColor = vec4(c * a, a);
 ```ts
 {
   startHub: 'sit',
+  speed: 0.7,                                      // 기본 재생 속도
+  hiddenFor: 180,                                  // 우클릭으로 숨은 뒤 다시 나타나기까지(초)
   frame: { w: 420, h: 282 },                       // 색상 절반 크기
   hit: { cx: 0.47, cy: 0.54, rx: 0.27, ry: 0.42 }, // 쓰다듬기 영역(0~1)
   heartAt: { x: 0.52, y: 0.1 },                    // 하트 위치(0~1)
   clips: [
     { id: 'sit_idle', src: '/cat/clips/sit_idle.mp4', from: 'sit', to: 'sit', kind: 'idle', weight: 2 },
     { id: 'pet', src: '/cat/clips/pet.mp4', from: 'sit', to: 'sit', kind: 'pet', fadeIn: 0.35, fadeOut: 0.35 },
+    { id: 'cat_hide', src: '/cat/clips/cat_hide.mp4', from: 'sit', to: 'hidden', kind: 'hide', speed: 0.85 },
+    { id: 'cat_appear', src: '/cat/clips/cat_appear.mp4', from: 'hidden', to: 'sit', kind: 'appear', speed: 0.75 },
     ...
   ]
 }
@@ -248,6 +321,8 @@ gl_FragColor = vec4(c * a, a);
 - [ ] 푸터에 `position: relative`, 펫은 바닥선에 붙게 `bottom: 0`
 - [ ] 펫 컨테이너 `pointer-events: none`, 쓰다듬기 영역만 `auto`
 - [ ] 간식 버튼 연결 (`feed()`), 쿨다운
+- [ ] 우클릭 숨기 동작 확인 (펫 영역에서 브라우저 메뉴가 뜨지 않고 숨는지), `hiddenFor` 시간 확인
+- [ ] 재생 속도 체감 확인 (기본 0.7 / 빠른 동작 0.85)
 - [ ] iOS 사파리에서 자동재생(무음·playsInline) 확인
 - [ ] 다크 테마 배경에서 펫 외곽이 잘 보이는지 확인 (필요 시 옅은 그림자/글로우)
 - [ ] Kling 생성 영상의 상업적 이용 가능 여부(요금제 약관) 확인
@@ -255,7 +330,7 @@ gl_FragColor = vec4(c * a, a);
 ## 9. 참고 파일
 | 파일 | 내용 |
 |---|---|
-| `src/components/cat-clips/clip-player.ts` | 플레이어 (WebGL 합성, 상태 그래프, 쓰다듬기, 간식, 숨바꼭질) |
+| `src/components/cat-clips/clip-player.ts` | 플레이어 (WebGL 합성, 상태 그래프, 쓰다듬기, 간식, 우클릭 숨기·등장, 재생 속도) |
 | `src/components/cat-clips/manifest.ts` | 고양이 클립 목록 |
 | `src/components/cat-clips/manifest-dog.ts` | 강아지 클립 목록 |
 | `scripts/cat-clips/process_clip.py` | 초록 배경 영상 → 투명 클립 변환 |
