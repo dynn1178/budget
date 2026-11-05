@@ -1,4 +1,55 @@
-# 아기 말티즈 Kling 프롬프트 (영상 7개 · 묶음형)
+# 아기 말티즈 Kling 프롬프트
+
+# ⚡ 압축형 v2 — 영상 6개 · 동작 약 42개 (추천)
+
+영상 1개(10초)에 **짧은 동작 6~8개**를 번호 순서대로 넣었어요. 큰 동작 뒤에만 기본 자세로 잠깐 멈추게 해서, 멈춤 지점에서 잘라 씁니다.
+시작·끝 프레임은 **모두 🐶 `dog_start_frame.png`** 입니다.
+
+| 라벨 | 주제 | 동작 수 |
+|---|---|---|
+| M1 | 일상 · 눈치 (마우스 시선용 포함) | 8 |
+| M2 | 아기 습성 | 7 |
+| M3 | 신나는 장난 | 7 |
+| M4 | 간식 ⭐ | 7 |
+| M5 | 애교 · 쓰다듬기 → 졸음 ⭐ | 7 |
+| M6 | 담벼락 빼꼼 ⭐ | 6 |
+
+### [M1] 일상 · 눈치 — 🐶 → 🐶
+```
+The fluffy white baby Maltese puppy performs a quick sequence of small idle gestures, each about one second, in this exact order: (1) keeping its body still, it looks slowly to the far left, then up, then to the right, then back at the viewer; (2) it tilts its head to one side, then to the other side, like a curious puppy; (3) its little ears perk up and flick; (4) the tip of its tiny pink tongue peeks out for a moment and goes back in (a cute tongue blep); (5) it sniffs the air, its little black nose wiggling; (6) it gives a slow, soft blink at the viewer; (7) it glances down at its own front paw and back up; (8) it settles into its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+### [M2] 아기 습성 — 🐶 → 🐶
+```
+The fluffy white baby Maltese puppy shows a quick sequence of baby puppy habits, briefly returning to its calm sitting pose after each, in this exact order: (1) a big sleepy yawn with its tiny pink tongue curling up; (2) a tiny cute sneeze that makes its head bob; (3) it lifts a hind leg and clumsily scratches behind its ear, wobbling and almost tipping over; (4) it licks one front paw a few times; (5) it twists to nibble at its own fluffy tail for a second; (6) a full-body fluffy shake from head to tail, fur and floppy ears flying; (7) it sits back down neatly looking a bit fluffed up. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+### [M3] 신나는 장난 — 🐶 → 🐶
+```
+The fluffy white baby Maltese puppy gets excited and playful, doing a quick sequence of short actions in this exact order: (1) a play bow with front legs stretched down and little bottom up, tail wagging fast; (2) a tiny happy bark; (3) two small bouncy hops in place; (4) it bats at the air with one front paw as if catching something; (5) it spins around once in place chasing its tail; (6) it wiggles its whole fluffy bottom with its tail wagging, tongue out, panting happily; (7) it plops back down into its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+### [M4] 간식 ⭐ — 🐶 → 🐶
+```
+In this exact order: (1) the fluffy white baby Maltese puppy sits up on its hind legs in a cute begging pose with both front paws held together, looking up pleadingly; (2) a small light-brown bone-shaped dog treat drops from above and lands in front of its paws, and the puppy's ears perk up and its big eyes sparkle; (3) it wags its tail excitedly and sniffs the treat; (4) it happily eats the treat, chewing with a delighted face; (5) it licks its lips with its tiny pink tongue; (6) it looks up at the viewer with its tongue sticking out in a happy smile, panting softly, tail wagging fast and its whole little body wiggling with joy; (7) it lifts one tiny front paw as if saying thank you, then settles into its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no other props except the treat, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+### [M5] 애교 · 쓰다듬기 → 졸음 ⭐ — 🐶 → 🐶
+```
+In this exact order: (1) the fluffy white baby Maltese puppy closes its eyes happily and leans its head up and to the side as if an invisible hand is stroking it, tiny pink tongue peeking out, tail wagging; (2) it rubs its cheek against the invisible hand with a blissful face; (3) it offers one tiny front paw for a handshake, then puts it down; (4) it gets sleepy, its eyes droop and its head nods a few times; (5) it flops down onto its tummy with its chin on its paws and sleeps for a moment, breathing slowly, paws twitching as if dreaming; (6) it wakes up and does a long puppy stretch with front legs out and bottom up, plus a tiny yawn; (7) it sits back up in its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy stays in the same spot and keeps facing left as in the first frame. Plain flat chroma-green background the whole time, no floor, no props, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+### [M6] 담벼락 빼꼼 ⭐ — 🐶 → 🐶  (화면 아래 끝 = 담벼락)
+```
+In this exact order: (1) the fluffy white baby Maltese puppy suddenly ducks and slides straight down below the bottom edge of the frame until completely hidden, leaving the empty background for a moment; (2) as if peeking over a low wall, its two tiny front paws appear and hook over the bottom edge; (3) the tips of its floppy ears rise up, then its big eyes peek over, glancing cautiously left and right; (4) it quickly ducks back down, then peeks up again a little further to the side, its tongue tip peeking out; (5) it scrambles up and climbs over the edge with its little paws, tail wagging; (6) it gives a quick fluffy shake and plops into its calm sitting pose. Static locked-off camera, no camera movement, no zoom, no cuts. The puppy faces left as in the first frame. Plain flat chroma-green background the whole time, no visible wall, no floor, no hole, no props, no text. Smooth, natural, realistic baby puppy motion, Pixar-style 3D. It ends in exactly the same pose as the last frame.
+```
+
+> 팁: 결과에서 동작이 빠지거나 뭉개지면 그 영상만 15초로 다시 만들거나, 뒤쪽 번호 몇 개를 빼고 다시 생성하세요.
+
+---
+
+# (이전) 기본형 — 영상 7개
+
 
 ## 시작·끝 프레임 이미지
 | 이미지 | 내용 | 쓰는 곳 |
