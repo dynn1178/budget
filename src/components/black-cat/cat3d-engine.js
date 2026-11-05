@@ -47,18 +47,18 @@ const f2 = (n) => Math.round(n * 100) / 100
 // Local cat space: facing +x, ground at y = 0, up is −y. Units ≈ px at size 1.
 const POSES = {
   stand: {
-    hipX: -18, hipY: -30, chestX: 13, chestY: -31, rHip: 15.5, rChest: 15,
-    headX: 28, headY: -60, headRot: 0, shoulderDy: 4, hindBend: 0,
+    hipX: -19, hipY: -35, chestX: 13, chestY: -37, rHip: 15.5, rChest: 14.5,
+    headX: 28, headY: -68, headRot: 0, shoulderDy: 4, hindBend: 0,
     fNx: 15, fNy: 0, fFx: 8, fFy: 0, hNx: -17, hNy: 0, hFx: -24, hFy: 0,
     hauX: -1, hauY: 2, hauRx: 12.5, hauRy: 13.5, hauRot: 12,
-    tailBase: 1.05, tailCurl: -0.07, tailTip: 0.26, tailSway: 0.12, tailSpeed: 0.9, tailFront: 0,
+    tailBase: 0.55, tailCurl: 0.07, tailTip: 0.3, tailSway: 0.12, tailSpeed: 0.9, tailFront: 0,
   },
   sit: {
-    hipX: -11, hipY: -17, chestX: 3, chestY: -36, rHip: 17, rChest: 12.5,
-    headX: 7, headY: -68, headRot: 0, shoulderDy: 6, hindBend: 1,
-    fNx: 13, fNy: 0, fFx: 12, fFy: 0, hNx: 9, hNy: 0, hFx: 9, hFy: 0,
-    hauX: 2, hauY: 3, hauRx: 17, hauRy: 14, hauRot: -8,
-    tailBase: -0.35, tailCurl: 0.0, tailTip: 0.3, tailSway: 0.05, tailSpeed: 0.5, tailFront: 0,
+    hipX: -11, hipY: -17, chestX: 0, chestY: -40, rHip: 16.5, rChest: 13,
+    headX: 4, headY: -79, headRot: 0, shoulderDy: 4, hindBend: 1,
+    fNx: 15, fNy: 0, fFx: 15, fFy: 0, hNx: 8, hNy: 0, hFx: 8, hFy: 0,
+    hauX: 1, hauY: 3, hauRx: 15, hauRy: 13, hauRot: -8,
+    tailBase: -0.25, tailCurl: 0.2, tailTip: 0.34, tailSway: 0.06, tailSpeed: 0.5, tailFront: 0,
   },
   lie: {
     hipX: -19, hipY: -13, chestX: 11, chestY: -15, rHip: 13.5, rChest: 13.5,
@@ -75,7 +75,7 @@ const POSES = {
     tailBase: -1.05, tailCurl: -0.24, tailTip: 0, tailSway: 0.012, tailSpeed: 0.3, tailFront: 1,
   },
   stretch: {
-    hipX: -17, hipY: -34, chestX: 10, chestY: -17, rHip: 15, rChest: 13,
+    hipX: -18, hipY: -38, chestX: 10, chestY: -19, rHip: 14.5, rChest: 12.5,
     headX: 28, headY: -27, headRot: -6, shoulderDy: 4, hindBend: 0,
     fNx: 42, fNy: 0, fFx: 37, fFy: 0, hNx: -16, hNy: 0, hFx: -23, hFy: 0,
     hauX: -1, hauY: 2, hauRx: 12.5, hauRy: 13.5, hauRot: 12,
@@ -101,8 +101,8 @@ function omegaFor(k) {
   return 6.5
 }
 
-const LF = 14.5 // front leg bone length
-const LH = 14.5 // hind leg bone length
+const LF = 17.5 // front leg bone length
+const LH = 16 // hind leg bone length
 
 const MEOWS = ['냐옹~', '냥!', '미야옹', '냐아~', '먀!']
 
@@ -151,17 +151,17 @@ export function createBlackCat3D(container, options = {}) {
   const rim2 = new THREE.DirectionalLight(0xb7c3ff, 1.8); rim2.position.set(-150, 40, -90); scene.add(rim2)
 
   /* --------------------------------------------------------- materials */
-  const furParams = { color: 0x1f1c21, roughness: 0.86, specularIntensity: 0.35, sheen: 1, sheenRoughness: 0.5, sheenColor: 0x8c7d74 }
+  const furParams = { color: 0x252125, roughness: 0.86, specularIntensity: 0.35, sheen: 1, sheenRoughness: 0.5, sheenColor: 0x8c7d74 }
   const M = {
     fur: new THREE.MeshPhysicalMaterial(furParams),
     furLight: new THREE.MeshPhysicalMaterial({ ...furParams, color: 0x2d2a2f }),
-    earIn: new THREE.MeshPhysicalMaterial({ color: 0xf29ba8, roughness: 0.55, sheen: 0.6, sheenColor: 0xffffff }),
+    earIn: new THREE.MeshPhysicalMaterial({ color: 0xd85a68, roughness: 0.6, sheen: 0.4, sheenColor: 0xffc4c4 }),
     nose: new THREE.MeshPhysicalMaterial({ color: 0xf08c9b, roughness: 0.28, clearcoat: 0.6 }),
     mouth: new THREE.MeshStandardMaterial({ color: 0x0e090c, roughness: 0.6 }),
     mouthIn: new THREE.MeshStandardMaterial({ color: 0x6a2233, roughness: 0.5 }),
     tongue: new THREE.MeshPhysicalMaterial({ color: 0xff97a9, roughness: 0.3, clearcoat: 0.4 }),
     mark: new THREE.MeshPhysicalMaterial({ color: 0xf6f0ec, roughness: 0.75, sheen: 1, sheenColor: 0xffffff, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }),
-    collar: new THREE.MeshPhysicalMaterial({ color: 0xe2455a, roughness: 0.42, clearcoat: 0.5, sheen: 0.4, sheenColor: 0xffb0b8 }),
+    collar: new THREE.MeshPhysicalMaterial({ color: 0xe5566a, roughness: 0.42, clearcoat: 0.5, sheen: 0.4, sheenColor: 0xffb0b8 }),
     bell: new THREE.MeshStandardMaterial({ color: 0xf3c247, metalness: 1, roughness: 0.2 }),
     bellSlot: new THREE.MeshStandardMaterial({ color: 0x5c3b06, metalness: 0.6, roughness: 0.5 }),
     bean: new THREE.MeshPhysicalMaterial({ color: 0xf5a0b1, roughness: 0.45 }),
@@ -172,25 +172,26 @@ export function createBlackCat3D(container, options = {}) {
 
   // shell fur: the same mesh drawn in N slightly inflated layers, each keeping
   // fewer "strands" (object-space hash) → soft, fluffy silhouette.
-  function furShell(base, k, len, density) {
+  function furShell(base, k, len, density, face = 0) {
     const m = base.clone()
     m.onBeforeCompile = (sh) => {
       sh.uniforms.uK = { value: k }
       sh.uniforms.uLen = { value: len }
       sh.uniforms.uDen = { value: density }
+      sh.uniforms.uFace = { value: face }
       sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform float uK; uniform float uLen; varying vec3 vFurP;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFurP = position;\ntransformed += normalize(objectNormal) * uK * uLen;\ntransformed.y -= uK * uK * uLen * 0.3;')
+        .replace('#include <common>', '#include <common>\nuniform float uK; uniform float uLen; uniform float uFace; varying vec3 vFurP; varying float vFace;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFurP = position;\nvFace = uFace * smoothstep(11.0, 17.0, position.z) * (1.0 - smoothstep(16.0, 21.0, length((position.xy - vec2(0.0, -6.0)) * vec2(0.85, 1.0))));\ntransformed += normalize(objectNormal) * uK * uLen * (1.0 - 0.8 * vFace);\ntransformed.y -= uK * uK * uLen * 0.3;')
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uK; uniform float uDen; varying vec3 vFurP;\nfloat furH(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }')
-        .replace('#include <color_fragment>', '#include <color_fragment>\nif (furH(floor(vFurP * uDen)) < uK) discard;\ndiffuseColor.rgb *= mix(0.62, 1.25, uK);')
+        .replace('#include <common>', '#include <common>\nuniform float uK; uniform float uDen; varying vec3 vFurP; varying float vFace;\nfloat furH(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }')
+        .replace('#include <color_fragment>', '#include <color_fragment>\nif (vFace > 0.5 || furH(floor(vFurP * uDen)) < uK) discard;\ndiffuseColor.rgb *= mix(0.62, 1.25, uK);')
     }
-    m.customProgramCacheKey = () => 'fur' + k.toFixed(3)
+    m.customProgramCacheKey = () => 'fur' + k.toFixed(3) + face
     return m
   }
-  const addShells = (parent, geo, base, n, len, density) => {
+  const addShells = (parent, geo, base, n, len, density, face = 0) => {
     for (let i = 1; i <= n; i++) {
-      const sh = new THREE.Mesh(geo, furShell(base, i / (n + 1), len, density))
+      const sh = new THREE.Mesh(geo, furShell(base, i / (n + 1), len, density, face))
       sh.frustumCulled = false
       parent.add(sh)
     }
@@ -205,10 +206,10 @@ export function createBlackCat3D(container, options = {}) {
   let irisDrawn = -1
   function drawIris(pupil) {
     const c = irisCanvas.getContext('2d')
-    c.fillStyle = '#1a1006'; c.fillRect(0, 0, 256, 256)
-    const R = 104
+    c.fillStyle = '#4a3206'; c.fillRect(0, 0, 256, 256)
+    const R = 123
     let g = c.createRadialGradient(128, 150, 6, 128, 128, R)
-    g.addColorStop(0, '#fff3ad'); g.addColorStop(0.35, '#ffd648'); g.addColorStop(0.75, '#f3a415'); g.addColorStop(1, '#9c5404')
+    g.addColorStop(0, '#fff07a'); g.addColorStop(0.5, '#f8d43a'); g.addColorStop(0.85, '#eeb51e'); g.addColorStop(1, '#a8700a')
     c.fillStyle = g; c.beginPath(); c.arc(128, 128, R, 0, TAU); c.fill()
     c.save(); c.globalAlpha = 0.18; c.strokeStyle = '#fff7c8'; c.lineWidth = 1.2
     for (let i = 0; i < 70; i++) {
@@ -216,16 +217,16 @@ export function createBlackCat3D(container, options = {}) {
       c.beginPath(); c.moveTo(128 + Math.cos(a) * 30, 128 + Math.sin(a) * 30); c.lineTo(128 + Math.cos(a) * (R - 8), 128 + Math.sin(a) * (R - 8)); c.stroke()
     }
     c.restore()
-    c.lineWidth = 7; c.strokeStyle = 'rgba(40,20,4,.85)'; c.beginPath(); c.arc(128, 128, R - 2, 0, TAU); c.stroke()
-    const pr = clamp(pupil * 15.5, 40, 92)
+    c.lineWidth = 3; c.strokeStyle = 'rgba(30,18,4,.75)'; c.beginPath(); c.arc(128, 128, R - 2, 0, TAU); c.stroke()
+    const pr = clamp(pupil * 17, 52, 96)
     g = c.createRadialGradient(118, 116, 4, 128, 128, pr)
-    g.addColorStop(0, '#4a2a10'); g.addColorStop(0.7, '#1c0e05'); g.addColorStop(1, '#0b0502')
+    g.addColorStop(0, '#3a2412'); g.addColorStop(0.6, '#1a0f07'); g.addColorStop(1, '#090503')
     c.fillStyle = g; c.beginPath(); c.arc(128, 128, pr, 0, TAU); c.fill()
     irisTex.needsUpdate = true
     irisDrawn = pupil
   }
   drawIris(3.9)
-  M.eye = new THREE.MeshPhysicalMaterial({ map: irisTex, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04 })
+  M.eye = new THREE.MeshPhysicalMaterial({ map: irisTex, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 0.6 })
 
   const radialTex = (inner, outer) => {
     const cv = document.createElement('canvas'); cv.width = cv.height = 64
@@ -268,7 +269,7 @@ export function createBlackCat3D(container, options = {}) {
   const mkLeg = (rU, rL, len) => {
     const up = new THREE.Mesh(new THREE.CapsuleGeometry(rU, len, 6, 14), M.fur)
     const lo = new THREE.Mesh(new THREE.CapsuleGeometry(rL, len, 6, 14), M.fur)
-    const paw = new THREE.Mesh(new THREE.SphereGeometry(5.6, 20, 14), M.fur)
+    const paw = new THREE.Mesh(new THREE.SphereGeometry(6, 20, 14), M.fur)
     paw.scale.set(1.2, 0.74, 1.05)
     const beans = new THREE.Group()
     const bg = new THREE.SphereGeometry(1, 10, 8)
@@ -283,10 +284,10 @@ export function createBlackCat3D(container, options = {}) {
     return { up, lo, paw, beans }
   }
   const legs = {
-    FN: mkLeg(5.4, 4.8, LF), FF: mkLeg(5.4, 4.8, LF),
-    HN: mkLeg(5.8, 4.6, LH), HF: mkLeg(5.8, 4.6, LH),
+    FN: mkLeg(5.6, 5.0, LF), FF: mkLeg(5.6, 5.0, LF),
+    HN: mkLeg(5.8, 4.8, LH), HF: mkLeg(5.8, 4.8, LH),
   }
-  const LEG_Z = 6.2
+  const LEG_Z = 5.6
 
   // tail: tapered tube rebuilt every frame
   const TN = 12, TR = 12
@@ -305,13 +306,13 @@ export function createBlackCat3D(container, options = {}) {
   const tail = new THREE.Mesh(tailGeo, M.fur)
   tail.frustumCulled = false
   yawG.add(tail)
-  addShells(tail, tailGeo, M.fur, 5, 1.7, 2.4)
+  addShells(tail, tailGeo, M.fur, 7, 3.0, 2.2)
 
   /* ------------------------------------------------------------ head */
   const headG = new THREE.Group()   // position + orientation
   yawG.add(headG)
   const headInner = new THREE.Group() // purr / features
-  headInner.scale.setScalar(1.12)
+  headInner.scale.setScalar(1.17)
   headG.add(headInner)
   const sstep = (a, b, t) => smooth(clamp((t - a) / (b - a), 0, 1))
   const headGeo = new THREE.SphereGeometry(1, 56, 40)
@@ -319,23 +320,24 @@ export function createBlackCat3D(container, options = {}) {
     const p = headGeo.attributes.position
     for (let i = 0; i < p.count; i++) {
       const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
-      const low = sstep(0.25, -0.6, y)
-      let X = x * 29 * (1 + 0.13 * low)
-      let Y = y * 24.5 * (y < 0 ? 0.97 : 1)
-      let Z = z * 24 * (1 - 0.05 * low)
-      if (z > 0) Z *= 1 - 0.07 * z * z
+      const cheek = Math.exp(-((y + 0.15) ** 2) / 0.08) // fluff band at eye level
+      const chin = sstep(-0.45, -1, y)
+      let X = x * 26.5 * (1 + 0.1 * cheek - 0.18 * chin)
+      let Y = y * 24 * (y < 0 ? 1.0 : 0.97)
+      let Z = z * 23 * (1 - 0.1 * chin)
+      if (z > 0) Z *= 1 - 0.08 * z * z
       p.setXYZ(i, X, Y, Z)
     }
     headGeo.computeVertexNormals()
   }
   const headMesh = new THREE.Mesh(headGeo, M.fur)
   headInner.add(headMesh)
-  addShells(headMesh, headGeo, M.fur, 8, 2.2, 2.6)
+  addShells(headMesh, headGeo, M.fur, 9, 2.6, 2.6, 1)
   // puffy muzzle + chin
-  const muzzleGeo = new THREE.SphereGeometry(6.4, 24, 18)
-  const muzL = new THREE.Mesh(muzzleGeo, M.furLight); muzL.position.set(-4, -11.2, 18.6); muzL.scale.set(1, 0.84, 0.78)
-  const muzR = muzL.clone(); muzR.position.x = 4
-  const chin = new THREE.Mesh(new THREE.SphereGeometry(4.8, 20, 14), M.furLight); chin.position.set(0, -15.6, 16.6); chin.scale.set(1, 0.8, 0.8)
+  const muzzleGeo = new THREE.SphereGeometry(4.6, 24, 18)
+  const muzL = new THREE.Mesh(muzzleGeo, M.fur); muzL.position.set(-3, -10.5, 18.4); muzL.scale.set(1, 0.8, 0.7)
+  const muzR = muzL.clone(); muzR.position.x = 3
+  const chin = new THREE.Mesh(new THREE.SphereGeometry(3.6, 20, 14), M.fur); chin.position.set(0, -14.6, 16.2); chin.scale.set(1, 0.75, 0.75)
   headInner.add(muzL, muzR, chin)
   headInner.updateMatrixWorld(true)
 
@@ -356,69 +358,53 @@ export function createBlackCat3D(container, options = {}) {
 
   // cheek fluff tufts
   {
-    const tg = new THREE.ConeGeometry(3.4, 9, 12)
+    const tg = new THREE.ConeGeometry(3.6, 6, 12)
     for (const sd of [-1, 1]) {
-      for (const [y, dy, dz, sc] of [[-4, -0.15, 0.1, 1], [-9, -0.45, 0.15, 1.1], [-14, -0.8, 0.25, 0.9]]) {
-        const { p } = surf(sd * 25, y, [headMesh])
+      for (const [y, dy, dz, sc] of [[-1, -0.05, 0.05, 1], [-6, -0.35, 0.1, 1.2], [-11, -0.7, 0.2, 1]]) {
+        const { p } = surf(sd * 24, y, [headMesh])
         const d = new THREE.Vector3(sd, dy, dz).normalize()
         const m = new THREE.Mesh(tg, M.fur)
-        m.position.copy(p).addScaledVector(d, 1.5)
+        m.position.copy(p).addScaledVector(d, 0.2)
         m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d)
         m.scale.setScalar(sc)
         headInner.add(m)
       }
     }
-    const top = new THREE.Mesh(tg, M.fur)
-    top.position.set(1, 23, 4); top.scale.set(0.7, 0.75, 0.7); top.rotation.z = -0.35
-    headInner.add(top)
   }
 
   // ears
   const ears3 = [-1, 1].map((sd) => {
     const pivot = new THREE.Group()
-    pivot.position.set(sd * 15.5, 12.5, -2)
-    const outer = new THREE.Mesh(new THREE.ConeGeometry(13.5, 30, 32), M.fur)
-    outer.scale.set(1, 1, 0.34); outer.position.y = 13.5
+    pivot.position.set(sd * 14, 12.5, -1.5)
+    const outer = new THREE.Mesh(new THREE.ConeGeometry(15.5, 31, 32), M.fur)
+    outer.scale.set(1, 1, 0.32); outer.position.y = 14
     addShells(outer, outer.geometry, M.fur, 4, 1.1, 3)
-    const inner = new THREE.Mesh(new THREE.ConeGeometry(10.2, 23, 28), M.earIn)
-    inner.scale.set(1, 1, 0.16); inner.position.set(0, 11.6, 3.4)
+    const inner = new THREE.Mesh(new THREE.ConeGeometry(11.8, 25, 28), M.earIn)
+    inner.scale.set(1, 1, 0.16); inner.position.set(0, 12.6, 3.3)
     pivot.add(outer, inner)
-    pivot.rotation.set(0.05, sd * -0.22, sd * -0.4)
+    pivot.rotation.set(0.12, sd * -0.2, sd * -0.46)
     headInner.add(pivot)
     return { pivot, sd, base: pivot.rotation.z }
   })
 
-  // forehead heart
-  {
-    const hs = new THREE.Shape()
-    hs.moveTo(0, -4.4)
-    hs.bezierCurveTo(-3, -2.2, -5.4, 0, -4.8, 2.6)
-    hs.bezierCurveTo(-4.2, 4.9, -1.3, 4.9, 0, 2.6)
-    hs.bezierCurveTo(1.3, 4.9, 4.2, 4.9, 4.8, 2.6)
-    hs.bezierCurveTo(5.4, 0, 3, -2.2, 0, -4.4)
-    const heart = new THREE.Mesh(new THREE.ShapeGeometry(hs, 16), M.mark)
-    place(heart, 0, 13.5, 0.25, [headMesh])
-    headInner.add(heart)
-  }
-
   // eyes
-  const eyeGeo = new THREE.SphereGeometry(10.4, 40, 30)
+  const eyeGeo = new THREE.SphereGeometry(9.2, 40, 30)
   {
     const p = eyeGeo.attributes.position, uv = eyeGeo.attributes.uv
-    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 20.8 + 0.5, p.getY(i) / 20.8 + 0.5)
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / 18.4 + 0.5, p.getY(i) / 18.4 + 0.5)
   }
-  const closedGeo = new THREE.TorusGeometry(7, 0.85, 8, 28, Math.PI * 0.72)
+  const closedGeo = new THREE.TorusGeometry(6.6, 0.8, 8, 28, Math.PI * 0.72)
   const sparkGeo = new THREE.SphereGeometry(1, 12, 10)
   const eyes3 = [-1, 1].map((sd) => {
     const g = new THREE.Group()
-    place(g, sd * 13.4, -2, -3.4, [headMesh])
+    place(g, sd * 12, -4, -2.9, [headMesh])
     const socket = new THREE.Group()
-    socket.scale.set(1, 1.08, 0.56)
+    socket.scale.set(1, 1.04, 0.42)
     const ball = new THREE.Mesh(eyeGeo, M.eye)
     socket.add(ball)
-    const s1 = new THREE.Mesh(sparkGeo, M.sparkle); s1.position.set(-3.8, 4.4, 9.9); s1.scale.setScalar(2.8)
-    const s2 = new THREE.Mesh(sparkGeo, M.sparkle); s2.position.set(3.9, -3.9, 10); s2.scale.setScalar(1.3)
-    const s3 = new THREE.Mesh(sparkGeo, M.sparkle); s3.position.set(-5.4, -2, 9.5); s3.scale.setScalar(0.7)
+    const s1 = new THREE.Mesh(sparkGeo, M.sparkle); s1.position.set(-3, 3.2, 8.8); s1.scale.setScalar(1.8)
+    const s2 = new THREE.Mesh(sparkGeo, M.sparkle); s2.position.set(3.2, -3.2, 8.8); s2.scale.setScalar(0.8)
+    const s3 = new THREE.Mesh(sparkGeo, M.sparkle); s3.position.set(-5, -2, 8.8); s3.scale.setScalar(0.5)
     socket.add(s1, s2, s3)
     g.add(socket)
     const closed = new THREE.Mesh(closedGeo, M.closedEye)
@@ -429,17 +415,17 @@ export function createBlackCat3D(container, options = {}) {
   })
 
   // nose, mouth, tongue, whiskers, blush
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(2.7, 18, 12), M.nose)
-  nose.scale.set(1.3, 0.82, 0.7)
-  place(nose, 0, -7.6, 0.6)
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(2.0, 18, 12), M.nose)
+  nose.scale.set(1.3, 0.8, 0.7)
+  place(nose, 0, -7.8, 0.5)
   headInner.add(nose)
   {
     const pts = []
     const add = (x, y) => { const { p, n } = surf(x, y); pts.push(p.addScaledVector(n, 0.3)) }
     for (const sd of [-1, 1]) {
       const c = []
-      for (const [x, y] of [[0, -9.6], [0, -11.6], [sd * 1.3, -13], [sd * 2.8, -13.2], [sd * 4.3, -12]]) { const { p, n } = surf(x, y); c.push(p.addScaledVector(n, 0.35)) }
-      const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(c), 20, 0.42, 6), M.mouth)
+      for (const [x, y] of [[0, -9.3], [0, -10.8], [sd * 1.1, -12], [sd * 2.4, -12.1], [sd * 3.6, -11.2]]) { const { p, n } = surf(x, y); c.push(p.addScaledVector(n, 0.35)) }
+      const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(c), 20, 0.34, 6), M.mouth)
       headInner.add(m)
     }
     void add
@@ -470,8 +456,8 @@ export function createBlackCat3D(container, options = {}) {
   })
 
   // collar + bell (on the neck, just below the big head)
-  const COLLAR_R = 17
-  const collar = new THREE.Mesh(new THREE.TorusGeometry(COLLAR_R, 2.8, 14, 56), M.collar)
+  const COLLAR_R = 14
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(COLLAR_R, 2.1, 14, 56), M.collar)
   yawG.add(collar)
   const bellPivot = new THREE.Group()
   const bellMesh = new THREE.Mesh(new THREE.SphereGeometry(4.6, 24, 18), M.bell)
@@ -789,7 +775,7 @@ export function createBlackCat3D(container, options = {}) {
   const tailPts = Array.from({ length: TRINGS }, () => new THREE.Vector3())
   const tailRad = new Float32Array(TRINGS)
   function buildTail3(Q, rootX, rootY, side) {
-    const N = TN, seg = 4.7
+    const N = TN, seg = 5.2
     let x = rootX, y = rootY
     tailPts[0].set(x, -y, 0)
     const swayZ = clamp(Q.tailSway * 7, 0.25, 1)
@@ -805,7 +791,7 @@ export function createBlackCat3D(container, options = {}) {
       const z = clamp(Q.tailFront, 0, 1) * side * Math.pow(v, 1.3) * 16 + Math.sin(tailPhase * 0.6 - i * 0.35) * v * 4 * swayZ
       tailPts[i + 1].set(x, -y, z)
     }
-    for (let i = 0; i <= N; i++) tailRad[i] = 3.7 + 1.4 * Math.sin(Math.PI * (0.08 + (i / N) * 0.8))
+    for (let i = 0; i <= N; i++) tailRad[i] = 4.6 + 2.2 * Math.sin(Math.PI * (0.12 + (i / N) * 0.7))
     // rounded tip
     _u.subVectors(tailPts[N], tailPts[N - 1]).normalize()
     const rt = tailRad[N]
@@ -1055,8 +1041,9 @@ export function createBlackCat3D(container, options = {}) {
     const hauR = ((Q.hauRx + Q.hauRy) / 2) * 0.74
     ball(hx + Q.hauX, hy - Q.hauY, 5.5, hauR)
     ball(hx + Q.hauX, hy - Q.hauY, -5.5, hauR)
-    ball(lerp(cx, hdx, 0.5), lerp(cy, hdy, 0.5) - 2, 0, 10.5)
-    ball(lerp(cx, hdx, 0.25) + 1.5, lerp(cy, hdy, 0.25), 0, 9.5) // chest fluff
+    ball(lerp(cx, hdx, 0.45), lerp(cy, hdy, 0.45), 0, 9.5)
+    ball(lerp(cx, hdx, 0.7), lerp(cy, hdy, 0.7), 0, 9) // visible neck
+    ball(lerp(cx, hdx, 0.2) + 2, lerp(cy, hdy, 0.2), 0, 9) // chest fluff
     ball(cx + 1, cy - Q.shoulderDy + 3, 5, 7.5)
     ball(cx + 1, cy - Q.shoulderDy + 3, -5, 7.5)
     body.update()
@@ -1097,8 +1084,8 @@ export function createBlackCat3D(container, options = {}) {
     const shY = cy - Q.shoulderDy
     const washKey = sgn > 0 ? 'FN' : 'FF'
     const legDefs = {
-      FN: { R: new THREE.Vector3(cx + 4, shY, LEG_Z), T: new THREE.Vector3(Q.fNx + gFN.dx, 4 - Q.fNy - gFN.dy, LEG_Z), L: LF, pole: poleF, fwd: 2.5 },
-      FF: { R: new THREE.Vector3(cx + 4, shY, -LEG_Z), T: new THREE.Vector3(Q.fFx + gFF.dx, 4 - Q.fFy - gFF.dy, -LEG_Z), L: LF, pole: poleF, fwd: 2.5 },
+      FN: { R: new THREE.Vector3(cx + 6, shY, LEG_Z), T: new THREE.Vector3(Q.fNx + gFN.dx, 4 - Q.fNy - gFN.dy, LEG_Z), L: LF, pole: poleF, fwd: 2.5 },
+      FF: { R: new THREE.Vector3(cx + 6, shY, -LEG_Z), T: new THREE.Vector3(Q.fFx + gFF.dx, 4 - Q.fFy - gFF.dy, -LEG_Z), L: LF, pole: poleF, fwd: 2.5 },
       HN: { R: new THREE.Vector3(hx + 1, hy - 4, LEG_Z), T: new THREE.Vector3(Q.hNx + gHN.dx, 4 - Q.hNy - gHN.dy, LEG_Z), L: LH, pole: poleH, fwd: 2.5 + hb * 1.5 },
       HF: { R: new THREE.Vector3(hx + 1, hy - 4, -LEG_Z), T: new THREE.Vector3(Q.hFx + gHF.dx, 4 - Q.hFy - gHF.dy, -LEG_Z), L: LH, pole: poleH, fwd: 2.5 + hb * 1.5 },
     }
@@ -1135,12 +1122,12 @@ export function createBlackCat3D(container, options = {}) {
     for (const e of ears3) {
       const tw = (e.sd < 0 ? ears.l : ears.r) * 0.1
       e.pivot.rotation.z = e.base - e.sd * ((earDeg + tw) * Math.PI / 180)
-      e.pivot.rotation.x = 0.05 - P.earBack * 0.45
+      e.pivot.rotation.x = 0.12 - P.earBack * 0.45
     }
     const ob = smooth(clamp((eyeOpen - 0.08) / 0.2, 0, 1))
     const happyArc = P.happy > 0.5
     for (const e of eyes3) {
-      e.socket.scale.y = 1.08 * Math.max(0.04, eyeOpen)
+      e.socket.scale.y = 1.04 * Math.max(0.04, eyeOpen)
       e.socket.visible = eyeOpen > 0.06
       for (const sp of e.sparks) sp.visible = ob > 0.35
       e.ball.rotation.set(look.py * 0.15, look.px * sgn * 0.15, 0)
@@ -1150,7 +1137,7 @@ export function createBlackCat3D(container, options = {}) {
       e.closed.position.y = happyArc ? -3.4 : 3.2
     }
     if (Math.abs(look.pupil - irisDrawn) > 0.12) drawIris(look.pupil)
-    for (const b of blushes) b.material.opacity = 0.3 + P.blush * 0.7
+    for (const b of blushes) b.material.opacity = P.blush * 0.8
     const mv = Math.max(0, mouthV)
     mouthIn.visible = mv > 0.03
     mouthIn.scale.set(1, Math.max(0.05, mv) * 1.15, 0.5)
@@ -1170,7 +1157,7 @@ export function createBlackCat3D(container, options = {}) {
       const ang = bell.a + cat.walkW * 14 * Math.sin(cat.phase * TAU * 2) + P.purr * 4 * Math.sin(time * 40)
       // collar ring around the neck axis, right under the head
       const ax = _u.set(hdx - cx, hdy - cy, 0).normalize().clone()
-      collar.position.set(hdx - ax.x * 24, hdy - ax.y * 24, 0)
+      collar.position.set(hdx - ax.x * 27, hdy - ax.y * 27, 0)
       collar.quaternion.setFromUnitVectors(_n.set(0, 0, 1), ax)
       collar.scale.set(1, 1, 1)
       // bell hangs on the camera-facing front of the ring
